@@ -1,0 +1,9 @@
+Команды для запуска 
+docker-compose up -d
+python user_service.py
+python auth_service.py
+python gateway_response.py
+uvicorn gateway:app --host 0.0.0.0 --port 8000 --reload
+
+Тестовый запрос 
+curl -X POST http://localhost:8000/login -H "Content-Type: application/json" -d '{"login": "user1", "password": "password123"}'
