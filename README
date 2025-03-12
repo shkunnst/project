@@ -1,4 +1,4 @@
-Команды для запуска 
+Команды для запуска (недоработка)
 docker-compose up -d
 python user_service.py
 python auth_service.py
