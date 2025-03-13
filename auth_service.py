@@ -3,14 +3,18 @@ import asyncio
 import json
 import jwt
 
+from storage import boostrap_servers
+
 SECRET_KEY = "mysecret"
 USERS_DB = {
     "user1": "password123"
 }
 
+
+
 async def process_messages():
-    consumer = AIOKafkaConsumer('auth_requests', bootstrap_servers='localhost:9092', group_id="auth-group")
-    producer = AIOKafkaProducer(bootstrap_servers='localhost:9092')
+    consumer = AIOKafkaConsumer('auth_requests', bootstrap_servers=boostrap_servers, group_id="auth-group")
+    producer = AIOKafkaProducer(bootstrap_servers=boostrap_servers)
 
     await consumer.start()
     await producer.start()

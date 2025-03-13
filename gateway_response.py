@@ -2,8 +2,11 @@ from aiokafka import AIOKafkaConsumer # type: ignore
 import asyncio
 import json
 
+from storage import boostrap_servers
+
+
 async def process_messages():
-    consumer = AIOKafkaConsumer('auth_responses', bootstrap_servers='localhost:9092', group_id="gateway-group")
+    consumer = AIOKafkaConsumer('auth_responses', bootstrap_servers=boostrap_servers, group_id="gateway-group")
     
     await consumer.start()
     

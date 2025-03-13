@@ -4,9 +4,11 @@ import asyncio
 import json
 import uuid
 
+from storage import boostrap_servers
+
 app = FastAPI()
 
-producer = AIOKafkaProducer(bootstrap_servers='localhost:9092')
+producer = AIOKafkaProducer(bootstrap_servers=boostrap_servers)
 
 @app.on_event("startup")
 async def start_producer():

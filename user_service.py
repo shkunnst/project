@@ -2,9 +2,13 @@ from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 import asyncio
 import json
 
+from storage import boostrap_servers
+
+
 async def process_messages():
-    consumer = AIOKafkaConsumer('user_requests', bootstrap_servers='localhost:9092', group_id="user-group")
-    producer = AIOKafkaProducer(bootstrap_servers='localhost:9092')
+    print("Try to connect ", boostrap_servers)
+    consumer = AIOKafkaConsumer('user_requests', bootstrap_servers=boostrap_servers, group_id="user-group")
+    producer = AIOKafkaProducer(bootstrap_servers=boostrap_servers)
 
     await consumer.start()
     await producer.start()
