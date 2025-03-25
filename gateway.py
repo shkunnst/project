@@ -4,6 +4,7 @@ import asyncio
 import json
 import uuid
 
+from attempt import attempt_connection
 from storage import boostrap_servers
 
 app = FastAPI()
@@ -12,7 +13,7 @@ producer = AIOKafkaProducer(bootstrap_servers=boostrap_servers)
 
 @app.on_event("startup")
 async def start_producer():
-    await producer.start()
+    await attempt_connection(producer=producer)
 
 @app.on_event("shutdown")
 async def stop_producer():

@@ -2,6 +2,7 @@ from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 import asyncio
 import json
 
+from attempt import attempt_connection
 from storage import boostrap_servers
 
 
@@ -10,8 +11,8 @@ async def process_messages():
     consumer = AIOKafkaConsumer('user_requests', bootstrap_servers=boostrap_servers, group_id="user-group")
     producer = AIOKafkaProducer(bootstrap_servers=boostrap_servers)
 
-    await consumer.start()
-    await producer.start()
+    await attempt_connection(consumer=consumer, producer=producer)
+
     
     try:
         async for msg in consumer:

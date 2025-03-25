@@ -2,7 +2,9 @@ from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 import asyncio
 import json
 import jwt
+import time
 
+from attempt import attempt_connection
 from storage import boostrap_servers
 
 SECRET_KEY = "mysecret"
@@ -10,15 +12,12 @@ USERS_DB = {
     "user1": "password123"
 }
 
-
-
 async def process_messages():
     consumer = AIOKafkaConsumer('auth_requests', bootstrap_servers=boostrap_servers, group_id="auth-group")
     producer = AIOKafkaProducer(bootstrap_servers=boostrap_servers)
 
-    await consumer.start()
-    await producer.start()
-    
+    await attempt_connection(consumer=consumer, producer=producer)
+
     try:
         async for msg in consumer:
             data = json.loads(msg.value.decode())
@@ -41,4 +40,3 @@ async def process_messages():
 
 if __name__ == "__main__":
     asyncio.run(process_messages())
-

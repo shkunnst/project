@@ -2,13 +2,13 @@ from aiokafka import AIOKafkaConsumer # type: ignore
 import asyncio
 import json
 
+from attempt import attempt_connection
 from storage import boostrap_servers
 
 
 async def process_messages():
     consumer = AIOKafkaConsumer('auth_responses', bootstrap_servers=boostrap_servers, group_id="gateway-group")
-    
-    await consumer.start()
+    await attempt_connection(consumer=consumer)
     
     try:
         async for msg in consumer:
