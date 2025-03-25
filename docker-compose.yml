@@ -49,8 +49,8 @@ services:
 
   user_service:
     build: .
-    command: ls
-#    command: python user_service.py
+#    command: ls
+    command: python user_service.py
     depends_on:
       - kafka1
 
