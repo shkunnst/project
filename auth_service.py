@@ -1,11 +1,15 @@
+import logging
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 import asyncio
 import json
 import jwt
-import time
 
 from attempt import attempt_connection
 from storage import boostrap_servers
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 SECRET_KEY = "mysecret"
 USERS_DB = {
@@ -21,7 +25,7 @@ async def process_messages():
     try:
         async for msg in consumer:
             data = json.loads(msg.value.decode())
-            print("Auth Service received:", data)
+            logger.info("Auth Service received: %s", data)
 
             request_id = data["request_id"]
 
@@ -32,6 +36,7 @@ async def process_messages():
                 response = {"request_id": request_id, "error": "Invalid credentials"}
 
             await producer.send_and_wait("auth_responses", json.dumps(response).encode())
+            logger.info("Sent response: %s", response)
     
     finally:
         await consumer.stop()

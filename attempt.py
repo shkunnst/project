@@ -5,8 +5,8 @@ from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 
 
 async def attempt_connection(consumer: AIOKafkaConsumer = None, producer: AIOKafkaProducer = None) -> bool:
-    max_retries = 10
-    retry_delay = 10
+    max_retries = 30
+    retry_delay = 15
 
     for attempt in range(max_retries):
         try:

@@ -1,3 +1,4 @@
+import logging
 from fastapi import FastAPI
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 import asyncio
@@ -7,6 +8,10 @@ import uuid
 from attempt import attempt_connection
 from storage import boostrap_servers
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = FastAPI()
 
 producer = None
@@ -15,13 +20,15 @@ pending_requests = {}
 @app.on_event("startup")
 async def startup_event():
     global producer
+    logger.info("Try to connect %s", boostrap_servers)
     producer = AIOKafkaProducer(bootstrap_servers=boostrap_servers)
     await attempt_connection(producer=producer)
     asyncio.create_task(process_responses())
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    await producer.stop()
+    if producer:
+        await producer.stop()
 
 @app.post("/login")
 async def login(data: dict):
@@ -32,7 +39,7 @@ async def login(data: dict):
     pending_requests[request_id] = data
 
     await producer.send_and_wait("user_requests", json.dumps(data).encode())
-    print("Sent request to Kafka for authentication")
+    logger.info("Sent request to Kafka for authentication: %s", data)
 
     return {"request_id": request_id, "status": "processing"}
 
@@ -49,7 +56,9 @@ async def process_responses():
                 # Retrieve the original request
                 original_request = pending_requests.pop(request_id)
                 # Here you can send the response back to the client
-                print(f"Response for request {request_id}: {response}")
+                logger.info("Received response for request_id: %s, response: %s", request_id, response)
+                with open("/app/logs/responses.txt", "a") as file:
+                    file.write(f"Response for request_id: {request_id}, \n request: {original_request}: {response}\n")
 
     finally:
         await consumer.stop()

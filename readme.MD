@@ -115,3 +115,13 @@ networks:
 2) изменить настройки kafka в docker compose файле:
 - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka1:9092 на
 - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+кажется кафка не хочет запускаться с такими настройками, я воспользовался командой - 
+```bash
+  docker run -d --name=kafka -p 9092:9092 apache/kafkaк
+```
+
+Это может понадобиться
+```bash
+mkdir -p ~/kafka-data
+sudo chown -R 1001:1001 ~/kafka-data
+```
