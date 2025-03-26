@@ -24,7 +24,6 @@ async def process_messages():
             print("Auth Service received:", data)
 
             request_id = data["request_id"]
-            response = {}
 
             if USERS_DB.get(data["login"]) == data["password"]:
                 token = jwt.encode({"user": data["login"]}, SECRET_KEY, algorithm="HS256")
