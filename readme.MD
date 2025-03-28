@@ -117,7 +117,7 @@ networks:
 - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
 кажется кафка не хочет запускаться с такими настройками, я воспользовался командой - 
 ```bash
-  docker run -d --name=kafka -p 9092:9092 apache/kafkaк
+  docker run -d --name=kafka -p 9092:9092 apache/kafka
 ```
 
 Это может понадобиться
