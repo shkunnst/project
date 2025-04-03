@@ -5,6 +5,8 @@ import asyncio
 import json
 import uuid
 
+from starlette.middleware.cors import CORSMiddleware
+
 from attempt import attempt_connection
 from storage import boostrap_servers
 
@@ -13,6 +15,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 producer = None
 consumer = None
@@ -62,30 +72,7 @@ async def login(data: dict):
                 # You can also send a timeout error to the client
     except Exception as e:
         logger.error(f"Error processing response from Kafka {e}")
-        # Here you can handle the error, for example, retry the request or send a notification to the client
 
-
-    # return {"request_id": request_id, "status": "processing"}
-
-# async def process_responses():
-#     consumer = AIOKafkaConsumer('auth_responses', bootstrap_servers=boostrap_servers, group_id="gateway-group")
-#     await attempt_connection(consumer=consumer)
-#
-#     try:
-#         async for msg in consumer:
-#             response = json.loads(msg.value.decode())
-#             request_id = response.get("request_id")
-#
-#             if request_id in pending_requests:
-#                 # Retrieve the original request
-#                 original_request = pending_requests.pop(request_id)
-#                 # Here you can send the response back to the client
-#                 logger.info("Received response for request_id: %s, response: %s", request_id, response)
-#                 with open("/app/logs/responses.txt", "a") as file:
-#                     file.write(f"Response for request_id: {request_id}, \n request: {original_request}: {response}\n")
-#
-#     finally:
-#         await consumer.stop()
 
 if __name__ == "__main__":
     import uvicorn
