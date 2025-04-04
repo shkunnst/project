@@ -44,7 +44,7 @@ async def shutdown_event():
         await producer.stop()
         await consumer.stop()
 
-@app.post("/login")
+@app.post("/api/login")
 async def login(data: dict):
     request_id = str(uuid.uuid4())
     data["request_id"] = request_id

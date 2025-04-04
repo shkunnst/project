@@ -14,7 +14,7 @@ function App() {
     };
 
     try {
-      const response = await fetch('http://0.0.0.0:8000/login', {
+      const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,7 +30,8 @@ function App() {
         console.error(data.error);
       }
     } catch (error) {
-      setResult({ success: false, message: `Произошла какая то ошибка. ${error}` });
+      console.error('Error during fetch:', error);
+      setResult({ success: false, message: `Произошла какая то ошибка. ${error.message}` });
     }
   };
 
