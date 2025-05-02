@@ -1,9 +1,20 @@
+from datetime import datetime, timedelta
+from typing import Optional
+import jwt
+from fastapi import HTTPException, Response, Cookie, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from passlib.context import CryptContext
 
 from back.database import User, UserRole
-from back.settings import pwd_context
+from back.settings import pwd_context, SECRET_KEY
 
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# JWT settings
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_DAYS = 7
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
@@ -13,13 +24,13 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-async def authenticate_user(session: AsyncSession, username: str, password: str):
+async def authenticate_user(session: AsyncSession, username: str, password: str) -> Optional[User]:
     result = await session.execute(select(User).where(User.username == username))
     user = result.scalar_one_or_none()
     if not user:
-        return False
+        return None
     if not verify_password(password, user.password):
-        return False
+        return None
     return user
 
 
@@ -36,4 +47,73 @@ async def create_user(session: AsyncSession, username: str, password: str, depar
     )
     session.add(user)
     await session.commit()
+    return user
+
+
+def create_access_token(data: dict) -> str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def set_auth_cookie(response: Response, token: str):
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        secure=True,  # Set to True in production
+        samesite="lax",
+        max_age=ACCESS_TOKEN_EXPIRE_DAYS * 24 * 60 * 60  # Convert days to seconds
+    )
+
+
+def remove_auth_cookie(response: Response):
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=True,  # Set to True in production
+        samesite="lax"
+    )
+
+
+async def get_current_user(
+    access_token: str = Cookie(None, alias="access_token"),
+    session: AsyncSession = Depends(get_db_session)
+) -> User:
+    if not access_token:
+        raise HTTPException(
+            status_code=401,
+            detail="Not authenticated"
+        )
+    
+    try:
+        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid authentication credentials"
+            )
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=401,
+            detail="Token has expired"
+        )
+    except jwt.JWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authentication credentials"
+        )
+
+    result = await session.execute(select(User).where(User.username == username))
+    user = result.scalar_one_or_none()
+    
+    if user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="User not found"
+        )
+    
     return user

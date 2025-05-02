@@ -1,5 +1,5 @@
 import logging
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response, Depends
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 import asyncio
 import json
@@ -11,6 +11,7 @@ from starlette.middleware.cors import CORSMiddleware
 from attempt import attempt_connection
 from back.database import init_db, seed
 from back.schemas import LoginRequest, RegisterRequest, PasswordRecoveryRequest
+from back.services.auth import set_auth_cookie, remove_auth_cookie, get_current_user
 from storage import boostrap_servers
 
 # Configure logging
@@ -30,8 +31,6 @@ app.add_middleware(
 producer = None
 consumer = None
 pending_requests: Dict[str, asyncio.Future] = {}
-
-
 
 @app.on_event("startup")
 async def startup_event():
@@ -82,16 +81,19 @@ async def send_kafka_request(data: Dict[str, Any]) -> Dict[str, Any]:
         raise HTTPException(status_code=504, detail="Request timeout")
 
 @app.post("/api/login")
-async def login(request: LoginRequest):
+async def login(request: LoginRequest, response: Response):
     data = {
         "action": "login",
         "login": request.login,
         "password": request.password
     }
-    return await send_kafka_request(data)
+    result = await send_kafka_request(data)
+    if "token" in result:
+        set_auth_cookie(response, result["token"])
+    return result
 
 @app.post("/api/register")
-async def register(request: RegisterRequest):
+async def register(request: RegisterRequest, response: Response):
     data = {
         "action": "register",
         "username": request.username,
@@ -101,7 +103,10 @@ async def register(request: RegisterRequest):
         "recovery_hint": request.recovery_hint,
         "role": request.role
     }
-    return await send_kafka_request(data)
+    result = await send_kafka_request(data)
+    if "token" in result:
+        set_auth_cookie(response, result["token"])
+    return result
 
 @app.post("/api/recover-password")
 async def recover_password(request: PasswordRecoveryRequest):
@@ -113,10 +118,22 @@ async def recover_password(request: PasswordRecoveryRequest):
     }
     return await send_kafka_request(data)
 
+@app.post("/api/logout")
+async def logout(response: Response):
+    remove_auth_cookie(response)
+    return {"message": "Successfully logged out"}
+
+@app.get("/api/me")
+async def get_me(current_user = Depends(get_current_user)):
+    return {
+        "username": current_user.username,
+        "role": current_user.role,
+        "department_id": current_user.department_id
+    }
+
 async def main():
     await init_db()
     await seed()
-
 
 if __name__ == "__main__":
     import uvicorn

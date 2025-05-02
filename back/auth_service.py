@@ -1,12 +1,18 @@
 import asyncio
 import json
-
 import jwt
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from sqlalchemy import select
+from datetime import datetime, timedelta
 
 from attempt import attempt_connection
-from back.services.auth import authenticate_user, get_password_hash, create_user
+from back.services.auth import (
+    authenticate_user,
+    get_password_hash,
+    create_user,
+    create_access_token,
+    ACCESS_TOKEN_EXPIRE_DAYS
+)
 from back.settings import SECRET_KEY, logger
 from database import get_db_session, User, UserRole
 from storage import boostrap_servers
@@ -31,16 +37,12 @@ async def process_messages():
                 if action == "login":
                     user = await authenticate_user(session, data["login"], data["password"])
                     if user:
-                        token = jwt.encode(
-                            {
-                                "user": user.username,
-                                "role": user.role,
-                                "department_id": user.department_id
-                            },
-                            SECRET_KEY,
-                            algorithm="HS256"
-                        )
-                        response = {"request_id": request_id, "token": token}
+                        token = create_access_token({"sub": user.username})
+                        response = {
+                            "request_id": request_id,
+                            "token": token,
+                            "expires_in": ACCESS_TOKEN_EXPIRE_DAYS * 24 * 60 * 60  # Convert days to seconds
+                        }
                     else:
                         response = {"request_id": request_id, "error": "Invalid credentials"}
 
@@ -55,7 +57,13 @@ async def process_messages():
                             recovery_hint=data["recovery_hint"],
                             role=UserRole(data["role"])
                         )
-                        response = {"request_id": request_id, "message": "User registered successfully"}
+                        token = create_access_token({"sub": user.username})
+                        response = {
+                            "request_id": request_id,
+                            "message": "User registered successfully",
+                            "token": token,
+                            "expires_in": ACCESS_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+                        }
                     except Exception as e:
                         response = {"request_id": request_id, "error": str(e)}
 
