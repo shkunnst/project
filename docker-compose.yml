@@ -33,21 +33,24 @@ services:
       - kafka
 
   user_service:
-    build: .
+    build:
+      context: ./back
     command: python user_service.py
     depends_on:
       - kafka
       - ui
 
   auth_service:
-    build: .
+    build:
+      context: ./back
     command: python auth_service.py
     depends_on:
       - kafka
       - ui
 
   gateway:
-    build: .
+    build:
+      context: ./back
     command: uvicorn gateway:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"

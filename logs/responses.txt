@@ -1,6 +1,0 @@
-Response for request_id: 80a504eb-fd1d-4678-8a26-15b4ca66dd08, 
- request: {'login': 'user1', 'password': 'password123', 'request_id': '80a504eb-fd1d-4678-8a26-15b4ca66dd08'}: {'request_id': '80a504eb-fd1d-4678-8a26-15b4ca66dd08', 'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoidXNlcjEifQ.EYHyem4ZuCFcsaZCLxfdfLhwerdT24zZMJI79Yo9W3E'}
-Response for request_id: 8083de37-f96d-4cc6-96f3-e86c1ff599c9, 
- request: {'login': 'user11', 'password': 'password123', 'request_id': '8083de37-f96d-4cc6-96f3-e86c1ff599c9'}: {'request_id': '8083de37-f96d-4cc6-96f3-e86c1ff599c9', 'error': 'Invalid credentials'}
-Response for request_id: 3d7170f3-8a13-480c-a324-d8ceb800530d, 
- request: {'username': 'user11', 'password': 'password123', 'request_id': '3d7170f3-8a13-480c-a324-d8ceb800530d'}: {'request_id': '3d7170f3-8a13-480c-a324-d8ceb800530d', 'error': 'Missing login or password'}
