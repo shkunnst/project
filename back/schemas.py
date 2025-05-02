@@ -34,6 +34,7 @@ class WorkDataUpdate(BaseModel):
 
 class WorkDataResponse(BaseModel):
     user_id: int
+    username: str  # Added username field
     working_hours: float
     bonuses: float
     fines: float

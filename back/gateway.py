@@ -175,7 +175,9 @@ async def get_department_work_data_endpoint(
         current_user=Depends(get_current_user),
         session: AsyncSession = Depends(get_async_db)
 ):
+    # This will now create work data for users who don't have it
     work_data_list = await get_department_work_data(current_user, session=session)
+    print(f"Work data for {work_data_list} users in the department")
     return work_data_list
 
 

@@ -28,15 +28,17 @@ const Dashboard = () => {
     const fetchDepartmentWorkData = async () => {
       try {
         console.log('Attempting to fetch department work data');
-        // Make sure the URL is correct - check if it should include a department ID
         const departmentWorkResponse = await api.get('/api/department/work-data');
         console.log('Department work data response:', departmentWorkResponse.data);
-        setDepartmentWorkData(departmentWorkResponse.data || []);
+        
+        const workDataList = departmentWorkResponse.data || [];
+        setDepartmentWorkData(workDataList);
       } catch (err) {
         console.error('Error fetching department work data:', err.response || err);
         setDepartmentError('Failed to load department work data');
       }
     };
+
 
     const loadData = async () => {
       if (user) {
@@ -69,7 +71,10 @@ const Dashboard = () => {
       {user && (
         <div className="user-info">
           <h2>Welcome, {user.username}</h2>
-          {user.department && <p>Department: {user.department}</p>}
+          <div className="user-details">
+            {user.role && <p><strong>Role:</strong> {user.role}</p>}
+            {user.department && <p><strong>Department:</strong> {user.department}</p>}
+          </div>
         </div>
       )}
 
@@ -101,7 +106,7 @@ const Dashboard = () => {
           <table className="department-table">
             <thead>
               <tr>
-                <th>User ID</th>
+                <th>Username</th>
                 <th>Working Hours</th>
                 <th>Bonuses</th>
                 <th>Fines</th>
@@ -110,7 +115,7 @@ const Dashboard = () => {
             <tbody>
               {departmentWorkData.map((item) => (
                 <tr key={item.user_id}>
-                  <td>{item.user_id}</td>
+                  <td>{item.username}</td>
                   <td>{item.working_hours}</td>
                   <td>{item.bonuses}</td>
                   <td>{item.fines}</td>
