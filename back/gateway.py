@@ -4,7 +4,8 @@ from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 import asyncio
 import json
 import uuid
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+from pydantic import BaseModel
 
 from starlette.middleware.cors import CORSMiddleware
 
@@ -12,6 +13,7 @@ from attempt import attempt_connection
 from back.database import init_db, seed
 from back.schemas import LoginRequest, RegisterRequest, PasswordRecoveryRequest
 from back.services.auth import set_auth_cookie, remove_auth_cookie, get_current_user
+from back.services.work_data import get_user_work_data, update_user_work_data, get_department_work_data
 from storage import boostrap_servers
 
 # Configure logging
@@ -27,6 +29,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Work data schemas
+class WorkDataUpdate(BaseModel):
+    working_hours: Optional[float] = None
+    bonuses: Optional[float] = None
+    fines: Optional[float] = None
+
+class WorkDataResponse(BaseModel):
+    user_id: int
+    working_hours: float
+    bonuses: float
+    fines: float
 
 producer = None
 consumer = None
@@ -77,7 +91,7 @@ async def send_kafka_request(data: Dict[str, Any]) -> Dict[str, Any]:
     try:
         return await asyncio.wait_for(future, timeout=30.0)
     except asyncio.TimeoutError:
-        pending_requests.pop(request_id, None)
+        await pending_requests.pop(request_id, None)
         raise HTTPException(status_code=504, detail="Request timeout")
 
 @app.post("/api/login")
@@ -130,6 +144,32 @@ async def get_me(current_user = Depends(get_current_user)):
         "role": current_user.role,
         "department_id": current_user.department_id
     }
+
+# Work data endpoints
+@app.get("/api/work-data/{user_id}", response_model=WorkDataResponse)
+async def get_work_data(user_id: int, current_user = Depends(get_current_user)):
+    work_data = await get_user_work_data(user_id, current_user)
+    return work_data
+
+@app.put("/api/work-data/{user_id}", response_model=WorkDataResponse)
+async def update_work_data(
+    user_id: int,
+    update_data: WorkDataUpdate,
+    current_user = Depends(get_current_user)
+):
+    work_data = await update_user_work_data(
+        user_id,
+        working_hours=update_data.working_hours,
+        bonuses=update_data.bonuses,
+        fines=update_data.fines,
+        current_user=current_user
+    )
+    return work_data
+
+@app.get("/api/department/work-data", response_model=list[WorkDataResponse])
+async def get_department_work_data_endpoint(current_user = Depends(get_current_user)):
+    work_data_list = await get_department_work_data(current_user)
+    return work_data_list
 
 async def main():
     await init_db()
