@@ -18,3 +18,6 @@ class PasswordRecoveryRequest(BaseModel):
     username: str
     recovery_word: str
     new_password: str
+
+class RecoveryHintRequest(BaseModel):
+    username: str

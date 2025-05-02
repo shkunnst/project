@@ -6,8 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
 
-from back.database import User, UserRole
-from back.settings import pwd_context, SECRET_KEY
+from back.database import get_db_session, get_db, get_async_db
+from back.models import User, UserRole
+from back.settings import SECRET_KEY, logger
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -80,7 +81,7 @@ def remove_auth_cookie(response: Response):
 
 async def get_current_user(
     access_token: str = Cookie(None, alias="access_token"),
-    session: AsyncSession = Depends(get_db_session)
+    session: AsyncSession = Depends(get_async_db)  # Change from get_db_session to get_db
 ) -> User:
     if not access_token:
         raise HTTPException(
@@ -101,19 +102,29 @@ async def get_current_user(
             status_code=401,
             detail="Token has expired"
         )
-    except jwt.JWTError:
+    except Exception as e:  # Replace jwt.JWTError with a general Exception
+        logger.error(f"Error validating access token: {e}")
         raise HTTPException(
             status_code=401,
             detail="Invalid authentication credentials"
         )
-
-    result = await session.execute(select(User).where(User.username == username))
-    user = result.scalar_one_or_none()
     
-    if user is None:
+    try:
+        # Use the session that was passed as a dependency
+        stmt = select(User).where(User.username == username)
+        result = await session.execute(stmt)
+        user = result.scalar_one_or_none()
+        
+        if user is None:
+            raise HTTPException(
+                status_code=401,
+                detail="User not found"
+            )
+        
+        return user
+    except Exception as e:
+        logger.error(f"Database error in get_current_user: {e}")
         raise HTTPException(
-            status_code=401,
-            detail="User not found"
+            status_code=500,
+            detail="Internal server error"
         )
-    
-    return user

@@ -10,11 +10,15 @@ from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 
 from attempt import attempt_connection
-from back.database import init_db, seed
 from back.schemas import LoginRequest, RegisterRequest, PasswordRecoveryRequest
 from back.services.auth import set_auth_cookie, remove_auth_cookie, get_current_user
+from back.services.seed import init_db, seed
 from back.services.work_data import get_user_work_data, update_user_work_data, get_department_work_data
 from storage import boostrap_servers
+from back.auth_service import router as auth_router
+
+# Import your database setup
+from back.database import engine, Base
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,13 +26,17 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173"],  # Adjust based on your frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include the auth router
+app.include_router(auth_router, prefix="/auth", tags=["authentication"])
 
 # Work data schemas
 class WorkDataUpdate(BaseModel):
@@ -55,6 +63,7 @@ async def startup_event():
     consumer = AIOKafkaConsumer('auth_responses', bootstrap_servers=boostrap_servers, group_id="gateway-group")
     await attempt_connection(producer=producer, consumer=consumer)
     asyncio.create_task(process_responses())
+
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -172,10 +181,11 @@ async def get_department_work_data_endpoint(current_user = Depends(get_current_u
     return work_data_list
 
 async def main():
+    # pass
     await init_db()
     await seed()
 
 if __name__ == "__main__":
     import uvicorn
     asyncio.run(main())
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("gateway:app", host="0.0.0.0", port=8000, reload=True)

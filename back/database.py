@@ -1,78 +1,59 @@
 import os
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Generator
+from contextlib import asynccontextmanager
 
-from sqlalchemy import select, Column, Integer, String, ForeignKey, Enum, Float
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.ext.declarative import declarative_base
-import enum
+from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
+from back.settings import DATABASE_URL
+from fastapi import Depends
 
-from back.models import Base, User, Department, UserRole
-from back.services.auth import get_password_hash
 
-# Create base class for declarative models
-Base = declarative_base()
-
-# Define role enum
-class UserRole(str, enum.Enum):
-    LEADER = "руководитель"
-    SUBORDINATE = "подчиненный"
-
-# Department model
-class Department(Base):
-    __tablename__ = "departments"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-    
-    # Relationship with users
-    users = relationship("User", back_populates="department")
-
-# WorkData model
-class WorkData(Base):
-    __tablename__ = "work_data"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
-    working_hours = Column(Float, default=0.0)
-    bonuses = Column(Float, default=0.0)
-    fines = Column(Float, default=0.0)
-
-    # Relationship with user
-    user = relationship("User", back_populates="work_data")
-
-# User model
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    password = Column(String)
-    recovery_word = Column(String)
-    recovery_hint = Column(String)
-    role = Column(Enum(UserRole))
-    
-    # Foreign key to department
-    department_id = Column(Integer, ForeignKey("departments.id"))
-    department = relationship("Department", back_populates="users")
-    
-    # Relationship with work data
-    work_data = relationship("WorkData", back_populates="user", uselist=False)
-
-# Database URL - using environment variable with fallback
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DATABASE_URL = f"postgresql+asyncpg://postgres:postgres@{DB_HOST}:5432/freelance_db"
-# Create async engine
-engine = create_async_engine(DATABASE_URL, echo=True)
-# postgresql://postgres:postgres@localhost:5432/freelance_db
-# Create async session factory
-async_session = sessionmaker(
-    engine, class_=AsyncSession, expire_on_commit=False
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=20,  # Increased from 10
+    max_overflow=30,  # Increased from 20
+    pool_timeout=10,  # Reduced from 30 (faster failure is better than hanging)
+    pool_recycle=3600,  # Add this to recycle connections hourly
+    pool_pre_ping=True  # Add this to test connections before use
 )
 
+async_engine = create_async_engine(
+    DATABASE_URL,
+    echo=False,
+    pool_size=20,  # Increased from 10
+    max_overflow=30,  # Increased from 20
+    pool_timeout=10,  # Reduced from 30
+    pool_recycle=3600,  # Add this
+    pool_pre_ping=True  # Add this
+)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+AsyncSessionLocal = async_sessionmaker(
+    bind=async_engine,
+    expire_on_commit=False,
+    class_=AsyncSession
+)
+
+Base = declarative_base()
+
 # Dependency for FastAPI
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session() as session:
+
+def get_db() -> Generator[Session, None, None]:
+    """Synchronous database session generator with improved error handling"""
+    db = SessionLocal()
+    try:
+        yield db
+        db.commit()  # Commit if no exceptions occur
+    except Exception as exc:
+        db.rollback()  # Rollback on any exception
+        raise exc  # Re-raise the exception after rollback
+    finally:
+        db.close()  # Always close the session
+
+async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+    """Корректный генератор сессии"""
+    async with AsyncSessionLocal() as session:
         try:
             yield session
             await session.commit()
@@ -82,63 +63,6 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         finally:
             await session.close()
 
-# Function to get database session directly (for non-FastAPI usage)
-async def get_db_session() -> AsyncSession:
-    async with async_session() as session:
-        return session
-
-# Function to initialize database
-async def init_db():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-async def seed():
-    # Create a session using the session factory directly
-    async with async_session() as session:
-        try:
-            # Check if users already exist
-            stmt = select(User)
-            result = await session.execute(stmt)
-            count = len(result.scalars().all())
-            
-            if count == 0:
-                # Create departments
-                department1 = Department(name="IT")
-                department2 = Department(name="HR")
-                session.add_all([department1, department2])
-                await session.flush()  # Flush to get department IDs
-
-                # Create users with proper enum values and department_id instead of department
-                user1 = User(
-                    username="john_doe", 
-                    password=get_password_hash("password123"),
-                    department_id=department1.id, 
-                    recovery_word="recovery1",
-                    recovery_hint="hint1",
-                    role=UserRole.LEADER  # Use the actual enum value "руководитель"
-                )
-                user2 = User(
-                    username="jane_smith", 
-                    password=get_password_hash("secret_password"),
-                    department_id=department2.id,
-                    recovery_word="recovery2",
-                    recovery_hint="hint2",
-                    role=UserRole.SUBORDINATE  # Use the actual enum value "подчиненный"
-                )
-                admin = User(
-                    username="admin",
-                    password=get_password_hash("admin_password"),
-                    department_id=None,
-                    recovery_word="recovery3",
-                    recovery_hint="hint3",
-                    role=UserRole.ADMIN  # Use the actual enum value "администратор"
-                )
-                session.add_all([user1, user2, admin])
-                
-                # Commit the changes
-                await session.commit()
-                print("Database seeded successfully")
-        except Exception as e:
-            await session.rollback()
-            print(f"Error seeding database: {e}")
-            raise
+# Dependency to get DB session
+async def get_db_session(session: AsyncSession = Depends(get_db)) -> AsyncSession:
+    return session

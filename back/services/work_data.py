@@ -3,7 +3,8 @@ from fastapi import HTTPException, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from back.database import User, WorkData, UserRole, get_db_session
+from back.database import get_db_session
+from back.models import User, UserRole, WorkData
 from back.services.auth import get_current_user
 
 async def get_user_work_data(

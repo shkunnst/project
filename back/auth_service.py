@@ -1,9 +1,10 @@
 import asyncio
 import json
-import jwt
+
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
-from sqlalchemy import select
-from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from attempt import attempt_connection
 from back.services.auth import (
@@ -13,22 +14,46 @@ from back.services.auth import (
     create_access_token,
     ACCESS_TOKEN_EXPIRE_DAYS
 )
-from back.settings import SECRET_KEY, logger
-from database import get_db_session, User, UserRole
+from back.settings import logger
+from database import get_db_session
+from back.models import User, UserRole
 from storage import boostrap_servers
 
+router = APIRouter()
+
+@router.get("/recovery-hint", response_model=dict)
+async def get_recovery_hint(
+    username: str = Query(..., description="Username to get recovery hint for"),
+    session: AsyncSession = Depends(get_db_session)
+):
+    """
+    Get the recovery hint for a user to help them remember their recovery word.
+    This endpoint is used in the password recovery process.
+    """
+    # Find the user by username
+    result = await session.execute(select(User).where(User.username == username))
+    user = result.scalars().first()
+    
+    if not user:
+        # For security reasons, don't reveal whether a username exists or not
+        # Just return a generic message
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Return the recovery hint
+    return {"recovery_hint": user.recovery_hint}
 
 async def process_messages():
     consumer = AIOKafkaConsumer('auth_requests', bootstrap_servers=boostrap_servers, group_id="auth-group")
     producer = AIOKafkaProducer(bootstrap_servers=boostrap_servers)
 
     await attempt_connection(consumer=consumer, producer=producer)
-
     try:
         async for msg in consumer:
             data = json.loads(msg.value.decode())
             logger.info("Auth Service received: %s", data)
-
             request_id = data["request_id"]
             action = data.get("action", "login")
             session = await get_db_session()
