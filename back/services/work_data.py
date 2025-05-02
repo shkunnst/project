@@ -85,19 +85,14 @@ async def update_user_work_data(
     return work_data
 
 async def get_department_work_data(
-    current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_db_session)
+    current_user: User,
+    session: AsyncSession
 ) -> List[WorkData]:
-    # Only leaders can view department work data
-    if current_user.role != UserRole.LEADER:
-        raise HTTPException(
-            status_code=403,
-            detail="Only leaders can view department work data"
-        )
-    
+
     result = await session.execute(
         select(WorkData)
         .join(User)
         .where(User.department_id == current_user.department_id)
     )
-    return result.scalars().all() 
+    return result.scalars().all()
+

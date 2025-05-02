@@ -5,25 +5,51 @@ import api from '../services/api';
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const [workData, setWorkData] = useState(null);
+  const [departmentWorkData, setDepartmentWorkData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [departmentError, setDepartmentError] = useState('');
 
   useEffect(() => {
-    const fetchWorkData = async () => {
+    const fetchUserWorkData = async () => {
       try {
         if (user && user.id) {
-          const response = await api.get(`/api/work-data/${user.id}`);
-          setWorkData(response.data);
+          console.log('Fetching user work data for ID:', user.id);
+          const userWorkResponse = await api.get(`/api/work-data/${user.id}`);
+          console.log('User work data response:', userWorkResponse.data);
+          setWorkData(userWorkResponse.data);
         }
       } catch (err) {
-        console.error('Error fetching work data:', err);
-        setError('Failed to load work data');
-      } finally {
-        setLoading(false);
+        console.error('Error fetching user work data:', err);
+        setError('Failed to load user work data');
       }
     };
 
-    fetchWorkData();
+    const fetchDepartmentWorkData = async () => {
+      try {
+        console.log('Attempting to fetch department work data');
+        // Make sure the URL is correct - check if it should include a department ID
+        const departmentWorkResponse = await api.get('/api/department/work-data');
+        console.log('Department work data response:', departmentWorkResponse.data);
+        setDepartmentWorkData(departmentWorkResponse.data || []);
+      } catch (err) {
+        console.error('Error fetching department work data:', err.response || err);
+        setDepartmentError('Failed to load department work data');
+      }
+    };
+
+    const loadData = async () => {
+      if (user) {
+        console.log('User data available, fetching work data');
+        await fetchUserWorkData();
+        await fetchDepartmentWorkData();
+      } else {
+        console.log('No user data available yet');
+      }
+      setLoading(false);
+    };
+
+    loadData();
   }, [user]);
 
   const handleLogout = () => {
@@ -40,7 +66,6 @@ const Dashboard = () => {
       </div>
 
       {error && <div className="error-message">{error}</div>}
-
       {user && (
         <div className="user-info">
           <h2>Welcome, {user.username}</h2>
@@ -50,7 +75,7 @@ const Dashboard = () => {
 
       {workData && (
         <div className="work-data">
-          <h3>Work Information</h3>
+          <h3>Your Work Information</h3>
           <div className="work-stats">
             <div className="stat-card">
               <h4>Working Hours</h4>
@@ -65,6 +90,39 @@ const Dashboard = () => {
               <p>{workData.fines}</p>
             </div>
           </div>
+        </div>
+      )}
+
+      {departmentError && <div className="error-message">{departmentError}</div>}
+      
+      {departmentWorkData.length > 0 ? (
+        <div className="department-work-data">
+          <h3>Department Work Information</h3>
+          <table className="department-table">
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Working Hours</th>
+                <th>Bonuses</th>
+                <th>Fines</th>
+              </tr>
+            </thead>
+            <tbody>
+              {departmentWorkData.map((item) => (
+                <tr key={item.user_id}>
+                  <td>{item.user_id}</td>
+                  <td>{item.working_hours}</td>
+                  <td>{item.bonuses}</td>
+                  <td>{item.fines}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="department-work-data">
+          <h3>Department Work Information</h3>
+          <p>No department work data available</p>
         </div>
       )}
     </div>
