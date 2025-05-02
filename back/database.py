@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, select
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, relationship
@@ -14,6 +14,7 @@ Base = declarative_base()
 class UserRole(str, enum.Enum):
     LEADER = "руководитель"
     SUBORDINATE = "подчиненный"
+    ADMIN = "администратор"
 
 # Department model
 class Department(Base):
@@ -35,9 +36,9 @@ class User(Base):
     recovery_word = Column(String)
     recovery_hint = Column(String)
     role = Column(Enum(UserRole))
-    
+
     # Foreign key to department
-    department_id = Column(Integer, ForeignKey("departments.id"))
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
     department = relationship("Department", back_populates="users")
 
 # Database URL - using environment variable with fallback
@@ -72,3 +73,54 @@ async def get_db_session() -> AsyncSession:
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+async def seed():
+    # Create a session using the session factory directly
+    async with async_session() as session:
+        try:
+            # Check if users already exist
+            stmt = select(User)
+            result = await session.execute(stmt)
+            count = len(result.scalars().all())
+            
+            if count == 0:
+                # Create departments
+                department1 = Department(name="IT")
+                department2 = Department(name="HR")
+                session.add_all([department1, department2])
+                await session.flush()  # Flush to get department IDs
+
+                # Create users with proper enum values and department_id instead of department
+                user1 = User(
+                    username="john_doe", 
+                    password="password123", 
+                    department_id=department1.id, 
+                    recovery_word="recovery1",
+                    recovery_hint="hint1",
+                    role=UserRole.LEADER  # Use the actual enum value "руководитель"
+                )
+                user2 = User(
+                    username="jane_smith", 
+                    password="secret_password", 
+                    department_id=department2.id,
+                    recovery_word="recovery2",
+                    recovery_hint="hint2",
+                    role=UserRole.SUBORDINATE  # Use the actual enum value "подчиненный"
+                )
+                admin = User(
+                    username="admin",
+                    password="admin_password",
+                    department_id=None,
+                    recovery_word="recovery3",
+                    recovery_hint="hint3",
+                    role=UserRole.ADMIN  # Use the actual enum value "администратор"
+                )
+                session.add_all([user1, user2, admin])
+                
+                # Commit the changes
+                await session.commit()
+                print("Database seeded successfully")
+        except Exception as e:
+            await session.rollback()
+            print(f"Error seeding database: {e}")
+            raise

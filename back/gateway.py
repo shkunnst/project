@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 
 from attempt import attempt_connection
-from back.database import init_db
+from back.database import init_db, seed
 from storage import boostrap_servers
 
 # Configure logging
@@ -131,6 +131,7 @@ async def recover_password(request: PasswordRecoveryRequest):
 
 async def main():
     await init_db()
+    await seed()
 
 
 if __name__ == "__main__":
