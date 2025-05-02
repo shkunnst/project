@@ -1,13 +1,16 @@
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 import asyncio
 import json
 import uuid
+from typing import Dict, Any
+from pydantic import BaseModel
 
 from starlette.middleware.cors import CORSMiddleware
 
 from attempt import attempt_connection
+from back.database import init_db
 from storage import boostrap_servers
 
 # Configure logging
@@ -26,7 +29,25 @@ app.add_middleware(
 
 producer = None
 consumer = None
-pending_requests = {}
+pending_requests: Dict[str, asyncio.Future] = {}
+
+# Pydantic models for request validation
+class LoginRequest(BaseModel):
+    login: str
+    password: str
+
+class RegisterRequest(BaseModel):
+    username: str
+    password: str
+    department_id: int
+    recovery_word: str
+    recovery_hint: str
+    role: str
+
+class PasswordRecoveryRequest(BaseModel):
+    username: str
+    recovery_word: str
+    new_password: str
 
 @app.on_event("startup")
 async def startup_event():
@@ -36,7 +57,7 @@ async def startup_event():
     producer = AIOKafkaProducer(bootstrap_servers=boostrap_servers)
     consumer = AIOKafkaConsumer('auth_responses', bootstrap_servers=boostrap_servers, group_id="gateway-group")
     await attempt_connection(producer=producer, consumer=consumer)
-    # asyncio.create_task(process_responses())
+    asyncio.create_task(process_responses())
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -44,36 +65,75 @@ async def shutdown_event():
         await producer.stop()
         await consumer.stop()
 
-@app.post("/api/login")
-async def login(data: dict):
-    request_id = str(uuid.uuid4())
-    data["request_id"] = request_id
-
-    # Store the request in the pending_requests dictionary
-    pending_requests[request_id] = data
-
-    await producer.send_and_wait("user_requests", json.dumps(data).encode())
-    logger.info("Sent request to Kafka for authentication: %s", data)
-
+async def process_responses():
     try:
         async for msg in consumer:
             response = json.loads(msg.value.decode())
             request_id = response.get("request_id")
-
+            
             if request_id in pending_requests:
-                # Retrieve the original request
-                original_request = pending_requests.pop(request_id)
-                # Here you can send the response back to the client
-                logger.info("Received response for request_id: %s, response: %s", request_id, response)
-                return response
-            else:
-                logger.info("No response received for request_id: %s", request_id)
-                # Here you can handle the case when no response is received within a certain timeframe
-                # You can also send a timeout error to the client
+                future = pending_requests.pop(request_id)
+                if not future.done():
+                    if "error" in response:
+                        future.set_exception(HTTPException(status_code=400, detail=response["error"]))
+                    else:
+                        future.set_result(response)
     except Exception as e:
-        logger.error(f"Error processing response from Kafka {e}")
+        logger.error(f"Error processing response from Kafka: {e}")
+
+async def send_kafka_request(data: Dict[str, Any]) -> Dict[str, Any]:
+    request_id = str(uuid.uuid4())
+    data["request_id"] = request_id
+    
+    future = asyncio.Future()
+    pending_requests[request_id] = future
+    
+    await producer.send_and_wait("auth_requests", json.dumps(data).encode())
+    logger.info("Sent request to Kafka: %s", data)
+    
+    try:
+        return await asyncio.wait_for(future, timeout=30.0)
+    except asyncio.TimeoutError:
+        pending_requests.pop(request_id, None)
+        raise HTTPException(status_code=504, detail="Request timeout")
+
+@app.post("/api/login")
+async def login(request: LoginRequest):
+    data = {
+        "action": "login",
+        "login": request.login,
+        "password": request.password
+    }
+    return await send_kafka_request(data)
+
+@app.post("/api/register")
+async def register(request: RegisterRequest):
+    data = {
+        "action": "register",
+        "username": request.username,
+        "password": request.password,
+        "department_id": request.department_id,
+        "recovery_word": request.recovery_word,
+        "recovery_hint": request.recovery_hint,
+        "role": request.role
+    }
+    return await send_kafka_request(data)
+
+@app.post("/api/recover-password")
+async def recover_password(request: PasswordRecoveryRequest):
+    data = {
+        "action": "recover_password",
+        "username": request.username,
+        "recovery_word": request.recovery_word,
+        "new_password": request.new_password
+    }
+    return await send_kafka_request(data)
+
+async def main():
+    await init_db()
 
 
 if __name__ == "__main__":
     import uvicorn
+    asyncio.run(main())
     uvicorn.run(app, host="0.0.0.0", port=8000)

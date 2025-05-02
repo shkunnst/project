@@ -2,6 +2,7 @@ version: "3.9"
 volumes:
   kafka-data:
   gateway-logs:  # Define a new volume for gateway logs
+  postgres_data:
 
 services:
   kafka:
@@ -33,24 +34,21 @@ services:
       - kafka
 
   user_service:
-    build:
-      context: ./back
+    build: .
     command: python user_service.py
     depends_on:
       - kafka
       - ui
 
   auth_service:
-    build:
-      context: ./back
+    build: .
     command: python auth_service.py
     depends_on:
       - kafka
       - ui
 
   gateway:
-    build:
-      context: ./back
+    build: .
     command: uvicorn gateway:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
@@ -59,6 +57,8 @@ services:
       - ui
     volumes:
       - ./logs:/app/logs  # Map the volume to /app/logs in the container
+    environment:
+      DB_HOST: "postgres"
 
   frontend:
     build:
@@ -70,3 +70,19 @@ services:
       - NODE_ENV=development
     depends_on:
       - gateway
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "freelance_db"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
