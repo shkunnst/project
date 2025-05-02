@@ -35,13 +35,12 @@ async def authenticate_user(session: AsyncSession, username: str, password: str)
     return user
 
 
-async def create_user(session: AsyncSession, username: str, password: str, department_id: int,
+async def create_user(session: AsyncSession, username: str, password: str,
                       recovery_word: str, recovery_hint: str, role: UserRole):
     hashed_password = get_password_hash(password)
     user = User(
         username=username,
         password=hashed_password,
-        department_id=department_id,
         recovery_word=recovery_word,
         recovery_hint=recovery_hint,
         role=role
@@ -53,7 +52,7 @@ async def create_user(session: AsyncSession, username: str, password: str, depar
 
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
+    expire = datetime.now() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt

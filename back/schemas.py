@@ -9,10 +9,8 @@ class LoginRequest(BaseModel):
 class RegisterRequest(BaseModel):
     username: str
     password: str
-    department_id: int
     recovery_word: str
     recovery_hint: str
-    role: str
 
 class PasswordRecoveryRequest(BaseModel):
     username: str

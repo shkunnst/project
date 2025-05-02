@@ -6,7 +6,6 @@ const Register = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
-    department_id: '',
     recovery_word: '',
     recovery_hint: '',
     role: 'user' // Default role
@@ -19,7 +18,7 @@ const Register = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'department_id' ? parseInt(value, 10) : value
+      [name]: value
     }));
   };
 
@@ -27,9 +26,21 @@ const Register = () => {
     e.preventDefault();
     setError('');
     
+    // Set a default department_id value (1) when submitting
+    const submitData = {
+      ...formData,
+      department_id: 1
+    };
+    
     try {
-      await register(formData);
-      navigate('/login', { state: { message: 'Registration successful! Please login.' } });
+      const response = await register(submitData);
+      console.log('Registration successful:', response);
+      
+      // Store success message in sessionStorage to persist through redirect
+      sessionStorage.setItem('registrationSuccess', 'User registered successfully! Please login.');
+      
+      // Navigate to login page
+      navigate('/login');
     } catch (err) {
       setError('Registration failed. Please try again.');
       console.error('Registration error:', err);
@@ -59,17 +70,6 @@ const Register = () => {
             id="password"
             name="password"
             value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="department_id">Department ID</label>
-          <input
-            type="number"
-            id="department_id"
-            name="department_id"
-            value={formData.department_id}
             onChange={handleChange}
             required
           />

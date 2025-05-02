@@ -42,7 +42,8 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      return await authService.register(userData);
+      const response = await authService.register(userData);
+      return response; // Return the response so we can access it in the Register component
     } catch (error) {
       throw error;
     }

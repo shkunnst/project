@@ -52,7 +52,7 @@ class User(Base):
     role = Column(Enum(UserRole))
 
     # Foreign key to department
-    department_id = Column(Integer, ForeignKey("departments.id"))
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
     department = relationship("Department", back_populates="users")
 
     # Relationship with work data

@@ -10,20 +10,14 @@ from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 
 from attempt import attempt_connection
+from back.models import UserRole
 from back.schemas import LoginRequest, RegisterRequest, PasswordRecoveryRequest
 from back.services.auth import set_auth_cookie, remove_auth_cookie, get_current_user
 from back.services.seed import init_db, seed
 from back.services.work_data import get_user_work_data, update_user_work_data, get_department_work_data
+from back.settings import logger
 from storage import boostrap_servers
 from back.auth_service import router as auth_router
-
-# Import your database setup
-from back.database import engine, Base
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 app = FastAPI()
 
 # Configure CORS
@@ -93,10 +87,9 @@ async def send_kafka_request(data: Dict[str, Any]) -> Dict[str, Any]:
     
     future = asyncio.Future()
     pending_requests[request_id] = future
-    
     await producer.send_and_wait("auth_requests", json.dumps(data).encode())
     logger.info("Sent request to Kafka: %s", data)
-    
+
     try:
         return await asyncio.wait_for(future, timeout=30.0)
     except asyncio.TimeoutError:
@@ -121,10 +114,9 @@ async def register(request: RegisterRequest, response: Response):
         "action": "register",
         "username": request.username,
         "password": request.password,
-        "department_id": request.department_id,
         "recovery_word": request.recovery_word,
         "recovery_hint": request.recovery_hint,
-        "role": request.role
+        "role": UserRole.SUBORDINATE
     }
     result = await send_kafka_request(data)
     if "token" in result:
