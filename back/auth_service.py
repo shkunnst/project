@@ -1,52 +1,16 @@
-import logging
-from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 import asyncio
 import json
+
 import jwt
+from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from passlib.context import CryptContext
 
 from attempt import attempt_connection
+from back.services.auth import authenticate_user, get_password_hash, create_user
+from back.settings import SECRET_KEY, logger
+from database import get_db_session, User, UserRole
 from storage import boostrap_servers
-from database import get_db_session, User, Department, UserRole
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-SECRET_KEY = "mysecret"  # Should be moved to environment variables in production
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
-
-async def authenticate_user(session: AsyncSession, username: str, password: str):
-    result = await session.execute(select(User).where(User.username == username))
-    user = result.scalar_one_or_none()
-    if not user:
-        return False
-    if not verify_password(password, user.password):
-        return False
-    return user
-
-async def create_user(session: AsyncSession, username: str, password: str, department_id: int, 
-                     recovery_word: str, recovery_hint: str, role: UserRole):
-    hashed_password = get_password_hash(password)
-    user = User(
-        username=username,
-        password=hashed_password,
-        department_id=department_id,
-        recovery_word=recovery_word,
-        recovery_hint=recovery_hint,
-        role=role
-    )
-    session.add(user)
-    await session.commit()
-    return user
 
 async def process_messages():
     consumer = AIOKafkaConsumer('auth_requests', bootstrap_servers=boostrap_servers, group_id="auth-group")
@@ -72,8 +36,8 @@ async def process_messages():
                                 "user": user.username,
                                 "role": user.role,
                                 "department_id": user.department_id
-                            }, 
-                            SECRET_KEY, 
+                            },
+                            SECRET_KEY,
                             algorithm="HS256"
                         )
                         response = {"request_id": request_id, "token": token}
@@ -121,10 +85,11 @@ async def process_messages():
 
             await producer.send_and_wait("auth_responses", json.dumps(response).encode())
             logger.info("Sent response: %s", response)
-    
+
     finally:
         await consumer.stop()
         await producer.stop()
+
 
 if __name__ == "__main__":
     asyncio.run(process_messages())

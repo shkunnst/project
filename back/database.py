@@ -1,45 +1,12 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, select
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, relationship
-import enum
-from typing import AsyncGenerator
-from fastapi import Depends
 import os
+from typing import AsyncGenerator
 
-# Create base class for declarative models
-Base = declarative_base()
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
 
-# Define role enum
-class UserRole(str, enum.Enum):
-    LEADER = "руководитель"
-    SUBORDINATE = "подчиненный"
-    ADMIN = "администратор"
-
-# Department model
-class Department(Base):
-    __tablename__ = "departments"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-    
-    # Relationship with users
-    users = relationship("User", back_populates="department")
-
-# User model
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    password = Column(String)
-    recovery_word = Column(String)
-    recovery_hint = Column(String)
-    role = Column(Enum(UserRole))
-
-    # Foreign key to department
-    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
-    department = relationship("Department", back_populates="users")
+from back.models import Base, User, Department, UserRole
+from back.services.auth import get_password_hash
 
 # Database URL - using environment variable with fallback
 DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -93,7 +60,7 @@ async def seed():
                 # Create users with proper enum values and department_id instead of department
                 user1 = User(
                     username="john_doe", 
-                    password="password123", 
+                    password=get_password_hash("password123"),
                     department_id=department1.id, 
                     recovery_word="recovery1",
                     recovery_hint="hint1",
@@ -101,7 +68,7 @@ async def seed():
                 )
                 user2 = User(
                     username="jane_smith", 
-                    password="secret_password", 
+                    password=get_password_hash("secret_password"),
                     department_id=department2.id,
                     recovery_word="recovery2",
                     recovery_hint="hint2",
@@ -109,7 +76,7 @@ async def seed():
                 )
                 admin = User(
                     username="admin",
-                    password="admin_password",
+                    password=get_password_hash("admin_password"),
                     department_id=None,
                     recovery_word="recovery3",
                     recovery_hint="hint3",

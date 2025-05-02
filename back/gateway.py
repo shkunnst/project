@@ -5,12 +5,12 @@ import asyncio
 import json
 import uuid
 from typing import Dict, Any
-from pydantic import BaseModel
 
 from starlette.middleware.cors import CORSMiddleware
 
 from attempt import attempt_connection
 from back.database import init_db, seed
+from back.schemas import LoginRequest, RegisterRequest, PasswordRecoveryRequest
 from storage import boostrap_servers
 
 # Configure logging
@@ -31,23 +31,7 @@ producer = None
 consumer = None
 pending_requests: Dict[str, asyncio.Future] = {}
 
-# Pydantic models for request validation
-class LoginRequest(BaseModel):
-    login: str
-    password: str
 
-class RegisterRequest(BaseModel):
-    username: str
-    password: str
-    department_id: int
-    recovery_word: str
-    recovery_hint: str
-    role: str
-
-class PasswordRecoveryRequest(BaseModel):
-    username: str
-    recovery_word: str
-    new_password: str
 
 @app.on_event("startup")
 async def startup_event():

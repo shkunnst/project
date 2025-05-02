@@ -1,3 +1,83 @@
+POST http://0.0.0.0:8000/api/login
+Content-Type: Application/json
+Content-Length: 58
+User-Agent: IntelliJ HTTP Client/PyCharm 2025.1
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+    "login": "john_doe",
+    "password": "password123"
+}
+
+<> 2025-05-02T200929.200.json
+
+###
+
+POST http://0.0.0.0:8000/api/login
+Content-Type: Application/json
+Content-Length: 58
+User-Agent: IntelliJ HTTP Client/PyCharm 2025.1
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+    "login": "john_doe",
+    "password": "password123"
+}
+
+<> 2025-05-02T200123.400.json
+
+###
+
+POST http://0.0.0.0:8000/api/login
+Content-Type: Application/json
+Content-Length: 58
+User-Agent: IntelliJ HTTP Client/PyCharm 2025.1
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+    "login": "john_doe",
+    "password": "password123"
+}
+
+<> 2025-05-02T200037.400.json
+
+###
+
+POST http://0.0.0.0:8000/api/login
+Content-Type: Application/json
+Content-Length: 55
+User-Agent: IntelliJ HTTP Client/PyCharm 2025.1
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+    "login": "user1",
+    "password": "password123"
+}
+
+<> 2025-05-02T200026.400.json
+
+###
+
+POST http://0.0.0.0:8000/login
+Content-Type: Application/json
+Content-Length: 55
+User-Agent: IntelliJ HTTP Client/PyCharm 2025.1
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+    "login": "user1",
+    "password": "password123"
+}
+
+<> 2025-05-02T200003.404.json
+
+###
+
 POST http://0.0.0.0:8000/login
 Content-Type: Application/json
 Content-Length: 55
@@ -715,86 +795,6 @@ Accept: */*
 }
 
 <> 2025-03-26T123057.200.json
-
-###
-
-POST http://0.0.0.0:8000/login
-Content-Type: Application/json
-Content-Length: 49
-User-Agent: IntelliJ HTTP Client/PyCharm 2024.3.5
-Accept-Encoding: br, deflate, gzip, x-gzip
-Accept: */*
-
-{
-    "login": "admin",
-    "password": "admin"
-}
-
-<> 2025-03-26T123003.200.json
-
-###
-
-POST http://0.0.0.0:8000/login
-Content-Type: Application/json
-Content-Length: 49
-User-Agent: IntelliJ HTTP Client/PyCharm 2024.3.5
-Accept-Encoding: br, deflate, gzip, x-gzip
-Accept: */*
-
-{
-    "login": "admin",
-    "password": "admin"
-}
-
-<> 2025-03-26T122803.200.json
-
-###
-
-POST http://0.0.0.0:8000/login
-Content-Type: Application/json
-Content-Length: 49
-User-Agent: IntelliJ HTTP Client/PyCharm 2024.3.5
-Accept-Encoding: br, deflate, gzip, x-gzip
-Accept: */*
-
-{
-    "login": "admin",
-    "password": "admin"
-}
-
-<> 2025-03-26T115957.200.json
-
-###
-
-POST http://0.0.0.0:8000/login
-Content-Type: Application/json
-Content-Length: 49
-User-Agent: IntelliJ HTTP Client/PyCharm 2024.3.5
-Accept-Encoding: br, deflate, gzip, x-gzip
-Accept: */*
-
-{
-    "login": "admin",
-    "password": "admin"
-}
-
-<> 2025-03-26T115806.200.json
-
-###
-
-POST http://0.0.0.0:8000/login
-Content-Type: Application/json
-Content-Length: 49
-User-Agent: IntelliJ HTTP Client/PyCharm 2024.3.5
-Accept-Encoding: br, deflate, gzip, x-gzip
-Accept: */*
-
-{
-    "login": "admin",
-    "password": "admin"
-}
-
-<> 2025-03-26T115641.200.json
 
 ###
 

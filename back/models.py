@@ -1,0 +1,40 @@
+import enum
+
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+
+# Create base class for declarative models
+Base = declarative_base()
+
+# Define role enum
+class UserRole(str, enum.Enum):
+    LEADER = "руководитель"
+    SUBORDINATE = "подчиненный"
+    ADMIN = "администратор"
+
+
+# Department model
+class Department(Base):
+    __tablename__ = "departments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+
+    # Relationship with users
+    users = relationship("User", back_populates="department")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    password = Column(String)
+    recovery_word = Column(String)
+    recovery_hint = Column(String)
+    role = Column(Enum(UserRole))
+
+    # Foreign key to department
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
+    department = relationship("Department", back_populates="users")
