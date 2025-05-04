@@ -39,7 +39,7 @@ export const authService = {
 
   getRecoveryHint: async (username) => {
     try {
-      const response = await api.get(`/auth/recovery-hint?username=${username}`);
+      const response = await api.get(`/api/auth/recovery-hint?username=${username}`);
       return response.data;
     } catch (error) {
       throw error;

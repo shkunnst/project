@@ -35,7 +35,7 @@ app.add_middleware(
 )
 
 # Include the auth router
-app.include_router(auth_router, prefix="/auth", tags=["authentication"])
+app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
 
 # Work data schemas
 
