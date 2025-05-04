@@ -11,13 +11,14 @@ from starlette.middleware.cors import CORSMiddleware
 from attempt import attempt_connection
 from back.auth_service import router as auth_router
 from back.database import get_db_session, get_async_db
-from back.models import UserRole
+from back.models import UserRole, User, Department
 from back.schemas import LoginRequest, RegisterRequest, PasswordRecoveryRequest, WorkDataResponse, WorkDataUpdate
 from back.services.auth import set_auth_cookie, remove_auth_cookie, get_current_user
 from back.services.seed import init_db, seed
 from back.services.work_data import get_user_work_data, update_user_work_data, get_department_work_data
 from back.settings import logger
 from storage import boostrap_servers
+from sqlalchemy import select
 
 app = FastAPI()
 
@@ -139,11 +140,23 @@ async def logout(response: Response):
 
 
 @app.get("/api/me")
-async def get_me(current_user=Depends(get_current_user)):
+async def get_me(
+    current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_db)
+):
+    # Fetch department name if user has a department_id
+    department_name = None
+    if current_user.department_id:
+        result = await session.execute(
+            select(Department.name).where(Department.id == current_user.department_id)
+        )
+        department_name = result.scalar_one_or_none()
+    
     return {
         "username": current_user.username,
         "role": current_user.role,
-        "department_id": current_user.department_id
+        "department_id": current_user.department_id,
+        "department_name": department_name
     }
 
 
@@ -158,10 +171,13 @@ async def get_work_data(user_id: int, current_user=Depends(get_current_user)):
 async def update_work_data(
         user_id: int,
         update_data: WorkDataUpdate,
-        current_user=Depends(get_current_user)
+        current_user=Depends(get_current_user),
+        session: AsyncSession = Depends(get_async_db),
+
 ):
     work_data = await update_user_work_data(
         user_id,
+        session=session,
         working_hours=update_data.working_hours,
         bonuses=update_data.bonuses,
         fines=update_data.fines,
@@ -177,7 +193,6 @@ async def get_department_work_data_endpoint(
 ):
     # This will now create work data for users who don't have it
     work_data_list = await get_department_work_data(current_user, session=session)
-    print(f"Work data for {work_data_list} users in the department")
     return work_data_list
 
 

@@ -24,6 +24,28 @@
   font-weight: 600;
 }
 
+.dashboard-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.admin-link {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #6c5ce7;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.admin-link:hover {
+  background-color: #5649c0;
+  transform: translateY(-2px);
+}
+
 .logout-button {
   width: auto;
   padding: 10px 20px;
@@ -131,6 +153,33 @@
   line-height: 1.6;
 }
 
+/* Department work data styles */
+.department-work-data {
+  margin-top: 40px;
+  padding: 25px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.department-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.department-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
 /* Add responsive design */
 @media (max-width: 768px) {
   .dashboard-container {
@@ -180,83 +229,26 @@
     color: #e0e0e0;
   }
 
-  .logout-button {
-    background-color: #333;
-    color: #e0e0e0;
-    border: 1px solid #444;
+  .dashboard-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
   }
 
-  .logout-button:hover {
-    background-color: #444;
-    color: #ffffff;
+  .admin-link {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #5a9aea;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
   }
 
-  .user-info {
-    background-color: #2a2a2a;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .user-info h2 {
-    color: #e0e0e0;
-  }
-
-  .user-info p {
-    color: #b0b0b0;
-  }
-
-  .work-data h3 {
-    color: #e0e0e0;
-  }
-
-  .stat-card {
-    background-color: #2a2a2a;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  .stat-card:hover {
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-  }
-
-  .stat-card h4 {
-    color: #b0b0b0;
-  }
-
-  .stat-card p {
-    color: #e0e0e0;
-  }
-
-  .hint-container {
-    background-color: #2d3748;
-    border-left: 4px solid #4a90e2;
-  }
-
-  .hint-container h3 {
-    color: #e0e0e0;
-  }
-
-  .hint-container p {
-    color: #b0b0b0;
-  }
-
-  /* Adjust card colors for dark mode */
-  .stat-card:nth-child(1) { border-left-color: #5a9aea; }
-  .stat-card:nth-child(2) { border-left-color: #60d888; }
-  .stat-card:nth-child(3) { border-left-color: #f5ac32; }
-  .stat-card:nth-child(4) { border-left-color: #a569bd; }
-}
-/* Dark mode styles */
-@media (prefers-color-scheme: dark) {
-  .dashboard-container {
-    background-color: #1a1a1a;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-  }
-
-  .dashboard-header {
-    border-bottom: 1px solid #333;
-  }
-
-  .dashboard-header h1 {
-    color: #e0e0e0;
+  .admin-link:hover {
+    background-color: #4a89dc;
+    transform: translateY(-2px);
   }
 
   .logout-button {
@@ -322,4 +314,26 @@
   .stat-card:nth-child(2) { border-left-color: #60d888; }
   .stat-card:nth-child(3) { border-left-color: #f5ac32; }
   .stat-card:nth-child(4) { border-left-color: #a569bd; }
+
+  .department-work-data {
+    background-color: #2a2a2a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .department-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .department-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background-color: #333;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
 }
