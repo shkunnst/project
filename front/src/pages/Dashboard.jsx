@@ -1,6 +1,8 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import './Dashboard.css';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
