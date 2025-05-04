@@ -21,7 +21,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchUserWorkData = async () => {
-      console.log('Fetching user work data...', user, user.id);
       try {
         if (user && user.id) {
           const userWorkResponse = await api.get(`/api/work-data/${user.id}`);
@@ -65,7 +64,8 @@ const Dashboard = () => {
       if (user) {
         await fetchUserWorkData();
 
-        if (user.role === 'руководитель') {
+        // Fetch department data for both managers and regular users
+        if (user.role === 'руководитель' || user.role === 'подчиненный') {
           await fetchDepartmentWorkData();
         }
 
@@ -105,7 +105,10 @@ const Dashboard = () => {
       <UserInfo user={user} workData={workData} />
 
       {/* User View Component for regular users */}
-      {isRegularUser && <UserView workData={workData} />}
+      {isRegularUser && <UserView 
+        workData={workData} 
+        departmentWorkData={departmentWorkData} 
+      />}
 
       {/* Manager View Component */}
       {isManager && <ManagerView
