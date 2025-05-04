@@ -247,13 +247,11 @@ async def get_all_departments(
 
 
 async def main():
-    # pass
     await init_db()
     await seed()
 
 
 if __name__ == "__main__":
     import uvicorn
-
     asyncio.run(main())
     uvicorn.run("gateway:app", host="0.0.0.0", port=8000, reload=True)

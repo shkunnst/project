@@ -1,0 +1,50 @@
+{
+  "departments": [
+    {"name": "IT"},
+    {"name": "HR"},
+    {"name": "Finance"},
+    {"name": "Marketing"}
+  ],
+  "users": [
+    {
+      "username": "john_doe",
+      "password": "password123",
+      "department": "IT",
+      "recovery_word": "recovery1",
+      "recovery_hint": "hint1",
+      "role": "LEADER"
+    },
+    {
+      "username": "jane_smith",
+      "password": "secret_password",
+      "department": "HR",
+      "recovery_word": "recovery2",
+      "recovery_hint": "hint2",
+      "role": "SUBORDINATE"
+    },
+    {
+      "username": "bob_johnson",
+      "password": "bob123",
+      "department": "IT",
+      "recovery_word": "recovery3",
+      "recovery_hint": "hint3",
+      "role": "SUBORDINATE"
+    },
+    {
+      "username": "alice_williams",
+      "password": "alice456",
+      "department": "Finance",
+      "recovery_word": "recovery4",
+      "recovery_hint": "hint4",
+      "role": "LEADER"
+    },
+    {
+      "username": "charlie_brown",
+      "password": "charlie789",
+      "department": "Marketing",
+      "recovery_word": "recovery5",
+      "recovery_hint": "hint5",
+      "role": "SUBORDINATE"
+    }
+  ]
+}
