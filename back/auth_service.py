@@ -21,10 +21,11 @@ from storage import boostrap_servers
 
 router = APIRouter()
 
+
 @router.get("/recovery-hint", response_model=dict)
 async def get_recovery_hint(
-    username: str = Query(..., description="Username to get recovery hint for"),
-    session: AsyncSession = Depends(get_async_db)
+        username: str = Query(..., description="Username to get recovery hint for"),
+        session: AsyncSession = Depends(get_async_db)
 ):
     """
     Get the recovery hint for a user to help them remember their recovery word.
@@ -33,7 +34,7 @@ async def get_recovery_hint(
     # Find the user by username
     result = await session.execute(select(User).where(User.username == username))
     user = result.scalars().first()
-    
+
     if not user:
         # For security reasons, don't reveal whether a username exists or not
         # Just return a generic message
@@ -41,9 +42,10 @@ async def get_recovery_hint(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    
+
     # Return the recovery hint
     return {"recovery_hint": user.recovery_hint}
+
 
 async def process_messages():
     consumer = AIOKafkaConsumer('auth_requests', bootstrap_servers=boostrap_servers, group_id="auth-group")

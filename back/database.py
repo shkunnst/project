@@ -1,13 +1,10 @@
-import os
 from typing import AsyncGenerator, Generator
-from contextlib import asynccontextmanager
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
-from back.settings import DATABASE_URL
-from fastapi import Depends
 
+from back.settings import DATABASE_URL
 
 engine = create_engine(
     DATABASE_URL,
@@ -37,6 +34,7 @@ AsyncSessionLocal = async_sessionmaker(
 
 Base = declarative_base()
 
+
 # Dependency for FastAPI
 
 def get_db() -> Generator[Session, None, None]:
@@ -51,6 +49,7 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()  # Always close the session
 
+
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
     """Корректный генератор сессии"""
     async with AsyncSessionLocal() as session:
@@ -62,4 +61,3 @@ async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
             raise
         finally:
             await session.close()
-

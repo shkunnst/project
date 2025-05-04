@@ -1,13 +1,36 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // This is important for cookies to be sent with requests
+  withCredentials: true, // Keep this for other potential cookies
 });
 
-// Add a response interceptor to handle unauthorized responses
+// Add a request interceptor to include the token in headers
+api.interceptors.request.use(
+  (config) => {
+    // Get token from cookie
+    const token = getCookie('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Helper function to get cookie by name
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
+// Keep your existing response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {

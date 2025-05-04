@@ -18,6 +18,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 7
 
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -64,8 +65,9 @@ def set_auth_cookie(response: Response, token: str):
         key="access_token",
         value=token,
         httponly=True,
-        secure=True,  # Set to True in production
+        secure=False,  # Set to False for HTTP or True for HTTPS
         samesite="lax",
+        path="/",  # Ensure cookie is available for all paths
         max_age=ACCESS_TOKEN_EXPIRE_DAYS * 24 * 60 * 60  # Convert days to seconds
     )
 
@@ -74,21 +76,22 @@ def remove_auth_cookie(response: Response):
     response.delete_cookie(
         key="access_token",
         httponly=True,
-        secure=True,  # Set to True in production
-        samesite="lax"
+        secure=False,  # Set to False for HTTP or True for HTTPS
+        samesite="lax",
+        path="/"  # Ensure cookie is deleted for all paths
     )
 
 
 async def get_current_user(
-    access_token: str = Cookie(None, alias="access_token"),
-    session: AsyncSession = Depends(get_async_db)  # Change from get_db_session to get_db
+        access_token: str = Cookie(None, alias="access_token"),
+        session: AsyncSession = Depends(get_async_db)
 ) -> User:
     if not access_token:
         raise HTTPException(
             status_code=401,
             detail="Not authenticated"
         )
-    
+
     try:
         payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -108,19 +111,19 @@ async def get_current_user(
             status_code=401,
             detail="Invalid authentication credentials"
         )
-    
+
     try:
         # Use the session that was passed as a dependency
         stmt = select(User).where(User.username == username)
         result = await session.execute(stmt)
         user = result.scalar_one_or_none()
-        
+
         if user is None:
             raise HTTPException(
                 status_code=401,
                 detail="User not found"
             )
-        
+
         return user
     except Exception as e:
         logger.error(f"Database error in get_current_user: {e}")

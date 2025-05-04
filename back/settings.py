@@ -12,7 +12,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-
 SECRET_KEY = "mysecret"  # Should be moved to environment variables in production
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

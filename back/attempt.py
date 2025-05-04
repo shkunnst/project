@@ -1,5 +1,4 @@
 import asyncio
-import json
 
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 

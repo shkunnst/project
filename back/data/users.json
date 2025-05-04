@@ -1,9 +1,17 @@
 {
   "departments": [
-    {"name": "IT"},
-    {"name": "HR"},
-    {"name": "Finance"},
-    {"name": "Marketing"}
+    {
+      "name": "IT"
+    },
+    {
+      "name": "HR"
+    },
+    {
+      "name": "Finance"
+    },
+    {
+      "name": "Marketing"
+    }
   ],
   "users": [
     {

@@ -11,7 +11,7 @@ from back.services.auth import get_current_user
 async def get_user_work_data(
         user_id: int,
         session: AsyncSession,
-    current_user: User = Depends(get_current_user),
+        current_user: User = Depends(get_current_user),
 ) -> Dict:
     # Check if user is requesting their own data or is a leader of the same department
     if current_user.id != user_id and current_user.role != UserRole.LEADER:
@@ -263,7 +263,7 @@ async def update_user_admin_data(
     # Update user role and department if provided
     if role is not None:
         target_user.role = role
-    
+
     if department_id is not None:
         # Verify department exists
         department = await session.get(Department, department_id)

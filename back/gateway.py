@@ -1,8 +1,7 @@
 import asyncio
 import json
 import uuid
-from typing import Dict, Any, Optional, List
-from pydantic import BaseModel
+from typing import Dict, Any, List
 
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 from fastapi import FastAPI, HTTPException, Response, Depends
@@ -13,12 +12,14 @@ from starlette.middleware.cors import CORSMiddleware
 from attempt import attempt_connection
 from back.auth_service import router as auth_router
 from back.database import get_async_db
-from back.models import UserRole, Department, User
-from back.schemas import LoginRequest, RegisterRequest, PasswordRecoveryRequest, WorkDataResponse, WorkDataUpdate, UserAdminUpdate
+from back.models import UserRole, Department
+from back.schemas import LoginRequest, RegisterRequest, PasswordRecoveryRequest, WorkDataResponse, WorkDataUpdate, \
+    UserAdminUpdate
 from back.services.auth import set_auth_cookie, remove_auth_cookie, get_current_user
-from back.services.seed import init_db, seed
-from back.services.work_data import get_user_work_data, update_user_work_data, get_department_work_data, get_all_users_work_data, update_user_admin_data
 from back.services.department import get_all_departments as get_all_departments_service
+from back.services.seed import init_db, seed
+from back.services.work_data import get_user_work_data, update_user_work_data, get_department_work_data, \
+    get_all_users_work_data, update_user_admin_data
 from back.settings import logger
 from storage import boostrap_servers
 
@@ -27,7 +28,7 @@ app = FastAPI()
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Adjust based on your frontend URL
+    allow_origins=["http://localhost:5173", "http://0.0.0.0"],  # Adjust based on your frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -202,21 +203,23 @@ async def get_department_work_data_endpoint(
     work_data_list = await get_department_work_data(current_user, session=session)
     return work_data_list
 
+
 @app.get("/api/admin/work-data", response_model=List[dict], tags=["admin"])
 async def get_all_users_work_data_endpoint(
-    current_user=Depends(get_current_user),
-    session: AsyncSession = Depends(get_async_db)
+        current_user=Depends(get_current_user),
+        session: AsyncSession = Depends(get_async_db)
 ):
     """Get all users with their work data, department, and role information (admin only)"""
     work_data_list = await get_all_users_work_data(current_user, session=session)
     return work_data_list
 
+
 @app.put("/api/admin/users/{user_id}", response_model=dict, tags=["admin"])
 async def update_user_admin_data_endpoint(
-    user_id: int,
-    update_data: UserAdminUpdate,
-    current_user=Depends(get_current_user),
-    session: AsyncSession = Depends(get_async_db)
+        user_id: int,
+        update_data: UserAdminUpdate,
+        current_user=Depends(get_current_user),
+        session: AsyncSession = Depends(get_async_db)
 ):
     """Update user information including role, department, and work data (admin only)"""
     updated_data = await update_user_admin_data(
@@ -235,8 +238,8 @@ async def update_user_admin_data_endpoint(
 # Add this function to get all departments
 @app.get("/api/departments", response_model=List[dict], tags=["departments"])
 async def get_all_departments(
-    current_user=Depends(get_current_user),
-    session: AsyncSession = Depends(get_async_db)
+        current_user=Depends(get_current_user),
+        session: AsyncSession = Depends(get_async_db)
 ):
     """Get all departments with their IDs and names"""
     department_list = await get_all_departments_service(session)
@@ -253,5 +256,6 @@ async def main():
 
 if __name__ == "__main__":
     import uvicorn
+
     asyncio.run(main())
     uvicorn.run("gateway:app", host="0.0.0.0", port=8000, reload=True)
