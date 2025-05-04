@@ -1,0 +1,4 @@
+/* Import shared auth styles */
+@import './Auth.css';
+
+/* Login-specific styles can go here */
