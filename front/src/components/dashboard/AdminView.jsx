@@ -29,7 +29,7 @@ const AdminView = ({ allUsersWorkData, setAllUsersWorkData, departments }) => {
       setEditingUser(null);
     } catch (err) {
       console.error('Error updating user data:', err);
-      alert('Failed to update user data');
+      alert('Не удалось обновить данные пользователя');
     }
   };
 
@@ -47,13 +47,13 @@ const AdminView = ({ allUsersWorkData, setAllUsersWorkData, departments }) => {
   return (
     <div className="admin-section">
       <div className="admin-header">
-        <h3>All Users Information</h3>
+        <h3>Информация о всех пользователях</h3>
         {!adminEditMode && (
           <button 
             className="edit-users-button"
             onClick={() => setAdminEditMode(true)}
           >
-            Edit User Data
+            Редактировать данные пользователей
           </button>
         )}
       </div>
@@ -62,10 +62,10 @@ const AdminView = ({ allUsersWorkData, setAllUsersWorkData, departments }) => {
         <div className="edit-user-form">
           {editingUser ? (
             <>
-              <h4>Editing data for {editingUser.username}</h4>
+              <h4>Редактирование данных для {editingUser.username}</h4>
               <div className="edit-form-fields">
                 <div className="form-group">
-                  <label>Username</label>
+                  <label>Имя пользователя</label>
                   <input 
                     type="text" 
                     value={editingUser.username} 
@@ -73,7 +73,7 @@ const AdminView = ({ allUsersWorkData, setAllUsersWorkData, departments }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Role</label>
+                  <label>Роль</label>
                   <select 
                     value={editingUser.role} 
                     onChange={(e) => handleAdminInputChange('role', e.target.value)}
@@ -84,19 +84,19 @@ const AdminView = ({ allUsersWorkData, setAllUsersWorkData, departments }) => {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Department</label>
+                  <label>Отдел</label>
                   <select 
                     value={editingUser.department_id || ''}
                     onChange={(e) => handleAdminInputChange('department_id', e.target.value === '' ? null : e.target.value)}
                   >
-                    <option value="">No Department</option>
+                    <option value="">Без отдела</option>
                     {departments.map((dept) => (
                       <option key={dept.id} value={dept.id}>{dept.name}</option>
                     ))}
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Working Hours</label>
+                  <label>Рабочие часы</label>
                   <input 
                     type="number" 
                     value={editingUser.working_hours} 
@@ -104,7 +104,7 @@ const AdminView = ({ allUsersWorkData, setAllUsersWorkData, departments }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Bonuses</label>
+                  <label>Бонусы</label>
                   <input 
                     type="number" 
                     value={editingUser.bonuses} 
@@ -112,7 +112,7 @@ const AdminView = ({ allUsersWorkData, setAllUsersWorkData, departments }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Fines</label>
+                  <label>Штрафы</label>
                   <input 
                     type="number" 
                     value={editingUser.fines} 
@@ -121,21 +121,21 @@ const AdminView = ({ allUsersWorkData, setAllUsersWorkData, departments }) => {
                 </div>
               </div>
               <div className="edit-actions">
-                <button onClick={handleAdminSaveUser} className="save-button">Save</button>
-                <button onClick={handleAdminCancelEdit} className="cancel-button">Cancel</button>
+                <button onClick={handleAdminSaveUser} className="save-button">Сохранить</button>
+                <button onClick={handleAdminCancelEdit} className="cancel-button">Отмена</button>
               </div>
             </>
           ) : (
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Username</th>
-                  <th>Role</th>
-                  <th>Department</th>
-                  <th>Working Hours</th>
-                  <th>Bonuses</th>
-                  <th>Fines</th>
-                  <th>Actions</th>
+                  <th>Имя пользователя</th>
+                  <th>Роль</th>
+                  <th>Отдел</th>
+                  <th>Рабочие часы</th>
+                  <th>Бонусы</th>
+                  <th>Штрафы</th>
+                  <th>Действия</th>
                 </tr>
               </thead>
               <tbody>
@@ -145,8 +145,8 @@ const AdminView = ({ allUsersWorkData, setAllUsersWorkData, departments }) => {
                     <td>{item.role}</td>
                     <td>
                       {item.department_id 
-                        ? departments.find(dept => dept.id === item.department_id)?.name || 'Unknown Department'
-                        : 'No Department'}
+                        ? departments.find(dept => dept.id === item.department_id)?.name || 'Неизвестный отдел'
+                        : 'Без отдела'}
                     </td>
                     <td>{item.working_hours}</td>
                     <td>{item.bonuses}</td>
@@ -156,7 +156,7 @@ const AdminView = ({ allUsersWorkData, setAllUsersWorkData, departments }) => {
                         onClick={() => handleAdminEditUser(item)}
                         className="edit-button"
                       >
-                        Edit
+                        Редактировать
                       </button>
                     </td>
                   </tr>
@@ -166,7 +166,7 @@ const AdminView = ({ allUsersWorkData, setAllUsersWorkData, departments }) => {
           )}
           {!editingUser && (
             <button onClick={() => setAdminEditMode(false)} className="cancel-button">
-              Cancel Editing
+              Отменить редактирование
             </button>
           )}
         </div>
@@ -174,12 +174,12 @@ const AdminView = ({ allUsersWorkData, setAllUsersWorkData, departments }) => {
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Username</th>
-              <th>Role</th>
-              <th>Department</th>
-              <th>Working Hours</th>
-              <th>Bonuses</th>
-              <th>Fines</th>
+              <th>Имя пользователя</th>
+              <th>Роль</th>
+              <th>Отдел</th>
+              <th>Рабочие часы</th>
+              <th>Бонусы</th>
+              <th>Штрафы</th>
             </tr>
           </thead>
           <tbody>
@@ -189,8 +189,8 @@ const AdminView = ({ allUsersWorkData, setAllUsersWorkData, departments }) => {
                 <td>{item.role}</td>
                 <td>
                   {item.department_id 
-                    ? departments.find(dept => dept.id === item.department_id)?.name || 'Unknown Department'
-                    : 'No Department'}
+                    ? departments.find(dept => dept.id === item.department_id)?.name || 'Неизвестный отдел'
+                    : 'Без отдела'}
                 </td>
                 <td>{item.working_hours}</td>
                 <td>{item.bonuses}</td>

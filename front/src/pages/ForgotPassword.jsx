@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { authService } from '../services/auth';
+import './Auth.css';
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1);
@@ -17,10 +19,10 @@ const ForgotPassword = () => {
     
     try {
       const response = await authService.getRecoveryHint(username);
-      setHint(response.recovery_hint || 'Hint not available');
+      setHint(response.recovery_hint || 'Подсказка недоступна');
       setStep(2);
     } catch (err) {
-      setError('Failed to get recovery hint. Please check your username.');
+      setError('Не удалось получить подсказку для восстановления. Пожалуйста, проверьте имя пользователя.');
       console.error('Error getting hint:', err);
     }
   };
@@ -31,22 +33,22 @@ const ForgotPassword = () => {
     
     try {
       await authService.recoverPassword(username, recoveryWord, newPassword);
-      navigate('/login', { state: { message: 'Password reset successful! Please login with your new password.' } });
+      navigate('/login', { state: { message: 'Пароль успешно сброшен! Пожалуйста, войдите с новым паролем.' } });
     } catch (err) {
-      setError('Password reset failed. Please check your recovery word.');
+      setError('Сброс пароля не удался. Пожалуйста, проверьте секретное слово.');
       console.error('Password reset error:', err);
     }
   };
 
   return (
     <div className="forgot-password-container">
-      <h2>Password Recovery</h2>
+      <h2>Восстановление пароля</h2>
       {error && <div className="error-message">{error}</div>}
       
       {step === 1 && (
         <form onSubmit={handleGetHint}>
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">Имя пользователя</label>
             <input
               type="text"
               id="username"
@@ -55,18 +57,18 @@ const ForgotPassword = () => {
               required
             />
           </div>
-          <button type="submit">Get Recovery Hint</button>
+          <button type="submit">Получить подсказку</button>
         </form>
       )}
       
       {step === 2 && (
         <>
           <div className="hint-container">
-            <p><strong>Recovery Hint:</strong> {hint}</p>
+            <p><strong>Подсказка для восстановления:</strong> {hint}</p>
           </div>
           <form onSubmit={handleResetPassword}>
             <div className="form-group">
-              <label htmlFor="recoveryWord">Recovery Word</label>
+              <label htmlFor="recoveryWord">Секретное слово</label>
               <input
                 type="text"
                 id="recoveryWord"
@@ -76,7 +78,7 @@ const ForgotPassword = () => {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="newPassword">New Password</label>
+              <label htmlFor="newPassword">Новый пароль</label>
               <input
                 type="password"
                 id="newPassword"
@@ -85,13 +87,13 @@ const ForgotPassword = () => {
                 required
               />
             </div>
-            <button type="submit">Reset Password</button>
+            <button type="submit">Сбросить пароль</button>
           </form>
         </>
       )}
       
       <div className="links">
-        <Link to="/login">Back to Login</Link>
+        <Link to="/login">Вернуться к входу</Link>
       </div>
     </div>
   );

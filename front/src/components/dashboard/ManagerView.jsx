@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import api from '../../services/api';
-import './ManagerView.css';
+import './AdminView.css'; // Reusing the same CSS for consistent styling
 
 const ManagerView = ({ departmentWorkData, setDepartmentWorkData }) => {
   const [editMode, setEditMode] = useState(false);
@@ -26,7 +26,7 @@ const ManagerView = ({ departmentWorkData, setDepartmentWorkData }) => {
       setEditingEmployee(null);
     } catch (err) {
       console.error('Error updating employee data:', err);
-      alert('Failed to update employee data');
+      alert('Не удалось обновить данные сотрудника');
     }
   };
 
@@ -49,13 +49,13 @@ const ManagerView = ({ departmentWorkData, setDepartmentWorkData }) => {
   return (
     <div className="department-work-data">
       <div className="department-header">
-        <h3>Department Work Information</h3>
+        <h3>Информация о работе отдела</h3>
         {!editMode && (
           <button 
             className="edit-employees-button"
             onClick={() => setEditMode(true)}
           >
-            Edit Employee Data
+            Редактировать данные сотрудников
           </button>
         )}
       </div>
@@ -64,10 +64,10 @@ const ManagerView = ({ departmentWorkData, setDepartmentWorkData }) => {
         <div className="edit-employee-form">
           {editingEmployee ? (
             <>
-              <h4>Editing data for {editingEmployee.username}</h4>
+              <h4>Редактирование данных для {editingEmployee.username}</h4>
               <div className="edit-form-fields">
                 <div className="form-group">
-                  <label>Working Hours</label>
+                  <label>Рабочие часы</label>
                   <input 
                     type="number" 
                     value={editingEmployee.working_hours} 
@@ -75,7 +75,7 @@ const ManagerView = ({ departmentWorkData, setDepartmentWorkData }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Bonuses</label>
+                  <label>Бонусы</label>
                   <input 
                     type="number" 
                     value={editingEmployee.bonuses} 
@@ -83,7 +83,7 @@ const ManagerView = ({ departmentWorkData, setDepartmentWorkData }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Fines</label>
+                  <label>Штрафы</label>
                   <input 
                     type="number" 
                     value={editingEmployee.fines} 
@@ -92,19 +92,19 @@ const ManagerView = ({ departmentWorkData, setDepartmentWorkData }) => {
                 </div>
               </div>
               <div className="edit-actions">
-                <button onClick={handleSaveEmployeeData} className="save-button">Save</button>
-                <button onClick={handleCancelEdit} className="cancel-button">Cancel</button>
+                <button onClick={handleSaveEmployeeData} className="save-button">Сохранить</button>
+                <button onClick={handleCancelEdit} className="cancel-button">Отмена</button>
               </div>
             </>
           ) : (
             <table className="department-table">
               <thead>
                 <tr>
-                  <th>Username</th>
-                  <th>Working Hours</th>
-                  <th>Bonuses</th>
-                  <th>Fines</th>
-                  <th>Actions</th>
+                  <th>Имя пользователя</th>
+                  <th>Рабочие часы</th>
+                  <th>Бонусы</th>
+                  <th>Штрафы</th>
+                  <th>Действия</th>
                 </tr>
               </thead>
               <tbody>
@@ -119,7 +119,7 @@ const ManagerView = ({ departmentWorkData, setDepartmentWorkData }) => {
                         onClick={() => handleEditEmployee(item)}
                         className="edit-button"
                       >
-                        Edit
+                        Редактировать
                       </button>
                     </td>
                   </tr>
@@ -129,7 +129,7 @@ const ManagerView = ({ departmentWorkData, setDepartmentWorkData }) => {
           )}
           {!editingEmployee && (
             <button onClick={() => setEditMode(false)} className="cancel-button">
-              Cancel Editing
+              Отменить редактирование
             </button>
           )}
         </div>
@@ -137,10 +137,10 @@ const ManagerView = ({ departmentWorkData, setDepartmentWorkData }) => {
         <table className="department-table">
           <thead>
             <tr>
-              <th>Username</th>
-              <th>Working Hours</th>
-              <th>Bonuses</th>
-              <th>Fines</th>
+              <th>Имя пользователя</th>
+              <th>Рабочие часы</th>
+              <th>Бонусы</th>
+              <th>Штрафы</th>
             </tr>
           </thead>
           <tbody>

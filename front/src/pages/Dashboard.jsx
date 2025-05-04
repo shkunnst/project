@@ -28,7 +28,7 @@ const Dashboard = () => {
         }
       } catch (err) {
         console.error('Error fetching user work data:', err);
-        setError('Failed to load user work data');
+        setError('Не удалось загрузить данные пользователя');
       }
     };
 
@@ -84,7 +84,7 @@ const Dashboard = () => {
     logout();
   };
 
-  if (loading) return <div className="loading-container">Loading...</div>;
+  if (loading) return <div className="loading-container">Загрузка...</div>;
 
   const isManager = user && user.role === 'руководитель';
   const isAdmin = user && user.role === 'администратор';
@@ -93,9 +93,9 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h1>Dashboard</h1>
+        <h1>Панель управления</h1>
         <div className="dashboard-actions">
-          <button onClick={handleLogout} className="logout-button">Logout</button>
+          <button onClick={handleLogout} className="logout-button">Выйти</button>
         </div>
       </div>
 

@@ -31,19 +31,19 @@ const Login = () => {
       await loginUser(login, password);
       navigate('/dashboard');
     } catch (err) {
-      setError('Invalid login credentials');
+      setError('Неверные учетные данные');
       console.error('Login error:', err);
     }
   };
 
   return (
     <div className="login-container">
-      <h2>Login</h2>
+      <h2>Вход в систему</h2>
       {successMessage && <div className="success-message">{successMessage}</div>}
       {error && <div className="error-message">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="login">Username</label>
+          <label htmlFor="login">Имя пользователя</label>
           <input
             type="text"
             id="login"
@@ -53,7 +53,7 @@ const Login = () => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">Пароль</label>
           <input
             type="password"
             id="password"
@@ -62,11 +62,11 @@ const Login = () => {
             required
           />
         </div>
-        <button type="submit">Login</button>
+        <button type="submit">Войти</button>
       </form>
       <div className="links">
-        <Link to="/register">Register</Link>
-        <Link to="/forgot-password">Forgot Password?</Link>
+        <Link to="/register">Регистрация</Link>
+        <Link to="/forgot-password">Забыли пароль?</Link>
       </div>
     </div>
   );
