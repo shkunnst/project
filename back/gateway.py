@@ -5,20 +5,20 @@ from typing import Dict, Any
 
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 from fastapi import FastAPI, HTTPException, Response, Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.cors import CORSMiddleware
 
 from attempt import attempt_connection
 from back.auth_service import router as auth_router
-from back.database import get_db_session, get_async_db
-from back.models import UserRole, User, Department
+from back.database import get_async_db
+from back.models import UserRole, Department
 from back.schemas import LoginRequest, RegisterRequest, PasswordRecoveryRequest, WorkDataResponse, WorkDataUpdate
 from back.services.auth import set_auth_cookie, remove_auth_cookie, get_current_user
 from back.services.seed import init_db, seed
 from back.services.work_data import get_user_work_data, update_user_work_data, get_department_work_data
 from back.settings import logger
 from storage import boostrap_servers
-from sqlalchemy import select
 
 app = FastAPI()
 
@@ -141,8 +141,8 @@ async def logout(response: Response):
 
 @app.get("/api/me")
 async def get_me(
-    current_user=Depends(get_current_user),
-    session: AsyncSession = Depends(get_async_db)
+        current_user=Depends(get_current_user),
+        session: AsyncSession = Depends(get_async_db)
 ):
     # Fetch department name if user has a department_id
     department_name = None
@@ -151,7 +151,7 @@ async def get_me(
             select(Department.name).where(Department.id == current_user.department_id)
         )
         department_name = result.scalar_one_or_none()
-    
+
     return {
         "username": current_user.username,
         "role": current_user.role,
@@ -162,8 +162,12 @@ async def get_me(
 
 # Work data endpoints
 @app.get("/api/work-data/{user_id}", response_model=WorkDataResponse)
-async def get_work_data(user_id: int, current_user=Depends(get_current_user)):
-    work_data = await get_user_work_data(user_id, current_user)
+async def get_work_data(
+        user_id: int,
+        current_user=Depends(get_current_user),
+        session: AsyncSession = Depends(get_async_db),
+):
+    work_data = await get_user_work_data(user_id=user_id, current_user=current_user, session=session)
     return work_data
 
 

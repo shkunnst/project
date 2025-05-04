@@ -11,21 +11,21 @@ from fastapi import Depends
 
 engine = create_engine(
     DATABASE_URL,
-    pool_size=20,  # Increased from 10
-    max_overflow=30,  # Increased from 20
-    pool_timeout=10,  # Reduced from 30 (faster failure is better than hanging)
-    pool_recycle=3600,  # Add this to recycle connections hourly
-    pool_pre_ping=True  # Add this to test connections before use
+    pool_size=20,
+    max_overflow=30,
+    pool_timeout=10,
+    pool_recycle=3600,
+    pool_pre_ping=True
 )
 
 async_engine = create_async_engine(
     DATABASE_URL,
     echo=False,
-    pool_size=20,  # Increased from 10
-    max_overflow=30,  # Increased from 20
-    pool_timeout=10,  # Reduced from 30
-    pool_recycle=3600,  # Add this
-    pool_pre_ping=True  # Add this
+    pool_size=20,
+    max_overflow=30,
+    pool_timeout=10,
+    pool_recycle=3600,
+    pool_pre_ping=True
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -63,6 +63,3 @@ async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
         finally:
             await session.close()
 
-# Dependency to get DB session
-async def get_db_session(session: AsyncSession = Depends(get_db)) -> AsyncSession:
-    return session

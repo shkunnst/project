@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from attempt import attempt_connection
+from back.models import User, UserRole
 from back.services.auth import (
     authenticate_user,
     get_password_hash,
@@ -15,8 +16,7 @@ from back.services.auth import (
     ACCESS_TOKEN_EXPIRE_DAYS
 )
 from back.settings import logger
-from database import get_db_session, get_async_db
-from back.models import User, UserRole
+from database import get_async_db
 from storage import boostrap_servers
 
 router = APIRouter()
@@ -24,7 +24,7 @@ router = APIRouter()
 @router.get("/recovery-hint", response_model=dict)
 async def get_recovery_hint(
     username: str = Query(..., description="Username to get recovery hint for"),
-    session: AsyncSession = Depends(get_db_session)
+    session: AsyncSession = Depends(get_async_db)
 ):
     """
     Get the recovery hint for a user to help them remember their recovery word.

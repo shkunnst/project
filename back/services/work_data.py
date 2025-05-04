@@ -4,15 +4,14 @@ from fastapi import HTTPException, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from back.database import get_db_session
 from back.models import User, UserRole, WorkData
 from back.services.auth import get_current_user
 
 
 async def get_user_work_data(
         user_id: int,
-        current_user: User = Depends(get_current_user),
-        session: AsyncSession = Depends(get_db_session)
+        session: AsyncSession,
+    current_user: User = Depends(get_current_user),
 ) -> Dict:
     # Check if user is requesting their own data or is a leader of the same department
     if current_user.id != user_id and current_user.role != UserRole.LEADER:

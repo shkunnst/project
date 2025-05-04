@@ -1,12 +1,13 @@
 from datetime import datetime, timedelta
 from typing import Optional
+
 import jwt
 from fastapi import HTTPException, Response, Cookie, Depends
+from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from passlib.context import CryptContext
 
-from back.database import get_db_session, get_db, get_async_db
+from back.database import get_async_db
 from back.models import User, UserRole
 from back.settings import SECRET_KEY, logger
 
