@@ -2,6 +2,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from back.models import UserRole
+
 
 # Pydantic models for request validation
 class LoginRequest(BaseModel):
@@ -38,3 +40,12 @@ class WorkDataResponse(BaseModel):
     working_hours: float
     bonuses: float
     fines: float
+
+
+class UserAdminUpdate(BaseModel):
+    username: str  # Added username field
+    working_hours: float
+    bonuses: float
+    fines: float
+    role: UserRole
+    department_id: Optional[int]

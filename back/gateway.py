@@ -1,7 +1,8 @@
 import asyncio
 import json
 import uuid
-from typing import Dict, Any
+from typing import Dict, Any, Optional, List
+from pydantic import BaseModel
 
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 from fastapi import FastAPI, HTTPException, Response, Depends
@@ -12,11 +13,12 @@ from starlette.middleware.cors import CORSMiddleware
 from attempt import attempt_connection
 from back.auth_service import router as auth_router
 from back.database import get_async_db
-from back.models import UserRole, Department
-from back.schemas import LoginRequest, RegisterRequest, PasswordRecoveryRequest, WorkDataResponse, WorkDataUpdate
+from back.models import UserRole, Department, User
+from back.schemas import LoginRequest, RegisterRequest, PasswordRecoveryRequest, WorkDataResponse, WorkDataUpdate, UserAdminUpdate
 from back.services.auth import set_auth_cookie, remove_auth_cookie, get_current_user
 from back.services.seed import init_db, seed
-from back.services.work_data import get_user_work_data, update_user_work_data, get_department_work_data
+from back.services.work_data import get_user_work_data, update_user_work_data, get_department_work_data, get_all_users_work_data, update_user_admin_data
+from back.services.department import get_all_departments as get_all_departments_service
 from back.settings import logger
 from storage import boostrap_servers
 
@@ -198,6 +200,49 @@ async def get_department_work_data_endpoint(
     # This will now create work data for users who don't have it
     work_data_list = await get_department_work_data(current_user, session=session)
     return work_data_list
+
+@app.get("/api/admin/work-data", response_model=List[dict], tags=["admin"])
+async def get_all_users_work_data_endpoint(
+    current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_db)
+):
+    """Get all users with their work data, department, and role information (admin only)"""
+    work_data_list = await get_all_users_work_data(current_user, session=session)
+    return work_data_list
+
+@app.put("/api/admin/users/{user_id}", response_model=dict, tags=["admin"])
+async def update_user_admin_data_endpoint(
+    user_id: int,
+    update_data: UserAdminUpdate,
+    current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_db)
+):
+    """Update user information including role, department, and work data (admin only)"""
+    updated_data = await update_user_admin_data(
+        user_id,
+        session=session,
+        current_user=current_user,
+        role=update_data.role,
+        department_id=update_data.department_id,
+        working_hours=update_data.working_hours,
+        bonuses=update_data.bonuses,
+        fines=update_data.fines
+    )
+    return updated_data
+
+
+# Add this function to get all departments
+@app.get("/api/departments", response_model=List[dict], tags=["departments"])
+async def get_all_departments(
+    current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_db)
+):
+    """Get all departments with their IDs and names"""
+    department_list = await get_all_departments_service(session)
+    return department_list
+
+
+# Add these routes to your FastAPI app
 
 
 async def main():
