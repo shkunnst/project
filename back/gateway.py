@@ -155,6 +155,7 @@ async def get_me(
         department_name = result.scalar_one_or_none()
 
     return {
+        "id": current_user.id,
         "username": current_user.username,
         "role": current_user.role,
         "department_id": current_user.department_id,
