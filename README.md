@@ -1,4 +1,4 @@
-# Freelance Kafka Project
+# Kafka Project
 
 ## Описание проекта
 
