@@ -39,23 +39,23 @@ const Register = () => {
       console.log('Registration successful:', response);
       
       // Store success message in sessionStorage to persist through redirect
-      sessionStorage.setItem('registrationSuccess', '\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f \u0443\u0441\u043f\u0435\u0448\u043d\u043e \u0437\u0430\u043a\u043e\u043d\u0447\u0438\u0442\u0430\u043d\u0430! \u041f\u043e\u0436\u0430\u043b\u0443\u0439\u0441\u0442\u0430, \u0432\u043e\u0439\u0434\u0438\u0442\u0435 \u0432 \u0441\u0438\u0441\u0442\u0435\u043c\u0443.');
+      sessionStorage.setItem('registrationSuccess', 'Регистрация успешно закончена! Пожалуйста, войдите в систему.');
       
       // Navigate to login page
       navigate('/login');
     } catch (err) {
-      setError('\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f \u043d\u0435 \u0443\u0434\u0430\u043b\u0430\u0441\u044c. \u041f\u043e\u0436\u0430\u043b\u0443\u0439\u0441\u0442\u0430, \u043f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0435\u0449\u0435.');
+      setError('Регистрация не удалась. Пожалуйста, попробуйте еще.');
       console.error('Registration error:', err);
     }
   };
 
   return (
     <div className="register-container">
-      <h2>\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f</h2>
+      <h2>Регистрация</h2>
       {error && <div className="error-message">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="username">\u0418\u043c\u044f \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f</label>
+          <label htmlFor="username">Имя пользователя</label>
           <input
             type="text"
             id="username"
@@ -66,7 +66,7 @@ const Register = () => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="password">\u041f\u0430\u0440\u043e\u043b\u044c</label>
+          <label htmlFor="password">Пароль</label>
           <input
             type="password"
             id="password"
@@ -77,7 +77,7 @@ const Register = () => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="recovery_word">\u0421\u0435\u043a\u0440\u0435\u0442\u043d\u043e\u0435 \u0441\u043b\u043e\u0432\u043e</label>
+          <label htmlFor="recovery_word">Секретное слово</label>
           <input
             type="text"
             id="recovery_word"
@@ -88,7 +88,7 @@ const Register = () => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="recovery_hint">\u041f\u043e\u0434\u0441\u043a\u0430\u0437\u043a\u0430 \u0434\u043b\u044f \u0432\u043e\u0441\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u044f</label>
+          <label htmlFor="recovery_hint">Подсказка для восстановления</label>
           <input
             type="text"
             id="recovery_hint"
@@ -98,10 +98,10 @@ const Register = () => {
             required
           />
         </div>
-        <button type="submit">\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f\u0442\u044c\u0441\u044f</button>
+        <button type="submit">Зарегистрироваться</button>
       </form>
       <div className="links">
-        <Link to="/login">\u0423\u0436\u0435 \u0435\u0441\u0442\u044c \u0430\u043a\u043a\u0430\u0443\u043d\u0442? \u0412\u043e\u0439\u0442\u0438</Link>
+        <Link to="/login">Уже есть аккаунт? Войти</Link>
       </div>
     </div>
   );
